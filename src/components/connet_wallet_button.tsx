@@ -3,7 +3,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useDialogStore } from "../state/connect_wallet_dialog";
 import { useConnectWalletStateStore } from "../state/connect_wallet_state";
-import { addrShort } from "~/lib/utils";
+import { addrShort } from "../lib/utils";
 
 export default function ConnectWalletButton() {
   const walletState = useConnectWalletStateStore();

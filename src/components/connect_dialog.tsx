@@ -15,7 +15,6 @@ import { signOut } from "next-auth/react";
 import { useRouter } from "next/router";
 import CopyToClipboard from "react-copy-to-clipboard";
 import { twMerge } from "tailwind-merge";
-import { addrShort } from "~/lib/utils";
 import log from "../../../../src/lib/logger/logger";
 import { useWCIStore } from "../state/wallect_connect_import";
 import { WalletType } from "../lib/enums";
@@ -32,6 +31,7 @@ import {
 import { useDialogStore } from "../state/connect_wallet_dialog";
 import { useConnectWalletStateStore } from "../state/connect_wallet_state";
 import useFacebookiOSUserAgent from "./hook";
+import { addrShort } from "../lib/utils";
 
 interface ConnectDialogProps {
   className: string;
