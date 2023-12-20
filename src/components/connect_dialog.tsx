@@ -32,6 +32,10 @@ import { useDialogStore } from "../state/connect_wallet_dialog";
 import { useConnectWalletStateStore } from "../state/connect_wallet_state";
 import useFacebookiOSUserAgent from "./hook";
 import { addrShort } from "../lib/utils";
+import LoginPage from "package/connect_wallet/src/components/login";
+import clsx from "clsx";
+import { emailPassLogin } from "../lib/stellar/wallet_clients/email_pass";
+import { ArrowLeft } from "lucide-react";
 
 interface ConnectDialogProps {
   className: string;
@@ -43,6 +47,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
   const [wcLoading, setWcLoading] = useState(false);
   const [isAccountActivate, setAccountActivate] = useState(false);
   const [isAccountActivateLoading, setAccountActivateLoading] = useState(false);
+  const [isEmailPassOpen, setEmailPassOpen] = useState(false);
   const state = useDialogStore();
   const walletState = useConnectWalletStateStore();
   const wciStore = useWCIStore();
@@ -201,99 +206,38 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
             <></>
           )}
           <div
-            className={
-              !isAccountActivate && walletState.isAva ? "invisible" : ""
-            }
+            className={clsx(
+              !isAccountActivate && walletState.isAva ? "invisible" : "",
+              "min-h-[300px]",
+            )}
           >
             <h3 className="mb-3 mt-4 flex justify-between text-lg font-medium leading-6 tracking-wider">
-              <span>Select Wallet</span>
+              {isEmailPassOpen ? (
+                <div className="mr-4 flex gap-4">
+                  <ArrowLeft onClick={() => setEmailPassOpen(false)} />
+                  <span>Login with email and password</span>
+                </div>
+              ) : (
+                <span>Select Wallet</span>
+              )}
             </h3>
-            <div className="mt-2 grid gap-4 sm:grid-cols-2">
-              <IconButton
-                toolTips={toolTipsAddr(WalletType.facebook)}
-                isSelected={walletState.walletType == WalletType.facebook}
-                onClick={() => void facebookLogin(walletState)}
-                imageUrl="/images/wallets/facebook.png"
-                text="Facebook"
-              />
-
-              <div
-                className="tooltip"
-                data-tip={isIosFBuser ? iosFbToltipMsg : undefined}
-              >
-                <IconButton
-                  toolTips={toolTipsAddr(WalletType.google)}
-                  isSelected={walletState.walletType == WalletType.google}
-                  onClick={() => void googleLogin(walletState)}
-                  imageUrl="/images/wallets/google.png"
-                  text="Google"
-                  disable={isIosFBuser ?? false}
-                />
+            {isEmailPassOpen ? (
+              <div className="flex h-full max-h-[300px] w-full items-center justify-center">
+                <LoginPage />
               </div>
-              <IconButton
-                toolTips={toolTipsAddr(WalletType.albedo)}
-                isSelected={walletState.walletType == WalletType.albedo}
-                onClick={() => {
-                  return void albedoLogin(walletState);
-                }}
-                imageUrl="/images/wallets/albedo.svg"
-                text="Albedo"
-              />
-              <IconButton
-                disable={wcLoading}
-                toolTips={toolTipsAddr(WalletType.walletConnect)}
-                isSelected={walletState.walletType == WalletType.walletConnect}
-                onClick={() => {
-                  const runner = async () => {
-                    setWcLoading(true);
-                    if (initializing) {
-                      await import("@web3modal/ui");
-                      await onInitialize();
-                    }
-                    setWcLoading(false);
-                    wciStore.setIsOpen(true);
-                    await walletConnectLogin(walletState);
-                    wciStore.setIsOpen(false);
-
-                    toast("WalletConnect session ended");
-                  };
-                  void runner();
-                }}
-                imageUrl="/images/wallets/walletconnect.png"
-                text={
-                  initializing && wcLoading
-                    ? "Initializing..."
-                    : "WalletConnect"
-                }
-              />
-              <IconButton
-                toolTips={toolTipsAddr(WalletType.frieghter)}
-                isSelected={walletState.walletType == WalletType.frieghter}
-                onClick={() => {
-                  return void freighterLogin(walletState);
-                }}
-                imageUrl="/images/wallets/freighter.png"
-                text="Freighter"
-              />
-
-              <IconButton
-                toolTips={toolTipsAddr(WalletType.rabet)}
-                isSelected={walletState.walletType == WalletType.rabet}
-                onClick={() => {
-                  return void rabetLogin(walletState);
-                }}
-                imageUrl="/images/wallets/rabet.png"
-                text="Rabet"
-              />
-            </div>
-            <div className="flex justify-center">
-              <button
-                className="btn btn-link text-center"
-                onClick={() => handleEmailPassLogin()}
-              >
-                Login with email and password
-              </button>
-            </div>
+            ) : (
+              <>
+                <AllButtons />
+                <div className="flex justify-center">
+                  <button
+                    className="btn btn-link text-center"
+                    onClick={() => handleEmailPassLogin()}
+                  >
+                    Login with email and password
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
         <div className="mt-5 text-center">
@@ -302,8 +246,86 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
       </DialogContent>
     </Dialog>
   );
+  function AllButtons() {
+    return (
+      <div className="mt-2 grid gap-4 sm:grid-cols-2">
+        <IconButton
+          toolTips={toolTipsAddr(WalletType.facebook)}
+          isSelected={walletState.walletType == WalletType.facebook}
+          onClick={() => void facebookLogin(walletState)}
+          imageUrl="/images/wallets/facebook.png"
+          text="Facebook"
+        />
+
+        <div
+          className="tooltip"
+          data-tip={isIosFBuser ? iosFbToltipMsg : undefined}
+        >
+          <IconButton
+            toolTips={toolTipsAddr(WalletType.google)}
+            isSelected={walletState.walletType == WalletType.google}
+            onClick={() => void googleLogin(walletState)}
+            imageUrl="/images/wallets/google.png"
+            text="Google"
+            disable={isIosFBuser ?? false}
+          />
+        </div>
+        <IconButton
+          toolTips={toolTipsAddr(WalletType.albedo)}
+          isSelected={walletState.walletType == WalletType.albedo}
+          onClick={() => {
+            return void albedoLogin(walletState);
+          }}
+          imageUrl="/images/wallets/albedo.svg"
+          text="Albedo"
+        />
+        <IconButton
+          disable={wcLoading}
+          toolTips={toolTipsAddr(WalletType.walletConnect)}
+          isSelected={walletState.walletType == WalletType.walletConnect}
+          onClick={() => {
+            const runner = async () => {
+              setWcLoading(true);
+              if (initializing) {
+                await import("@web3modal/ui");
+                await onInitialize();
+              }
+              setWcLoading(false);
+              wciStore.setIsOpen(true);
+              await walletConnectLogin(walletState);
+              wciStore.setIsOpen(false);
+
+              toast("WalletConnect session ended");
+            };
+            void runner();
+          }}
+          imageUrl="/images/wallets/walletconnect.png"
+          text={initializing && wcLoading ? "Initializing..." : "WalletConnect"}
+        />
+        <IconButton
+          toolTips={toolTipsAddr(WalletType.frieghter)}
+          isSelected={walletState.walletType == WalletType.frieghter}
+          onClick={() => {
+            return void freighterLogin(walletState);
+          }}
+          imageUrl="/images/wallets/freighter.png"
+          text="Freighter"
+        />
+
+        <IconButton
+          toolTips={toolTipsAddr(WalletType.rabet)}
+          isSelected={walletState.walletType == WalletType.rabet}
+          onClick={() => {
+            return void rabetLogin(walletState);
+          }}
+          imageUrl="/images/wallets/rabet.png"
+          text="Rabet"
+        />
+      </div>
+    );
+  }
+
   function handleEmailPassLogin() {
-    router.push("/login");
-    state.setIsOpen(false);
+    setEmailPassOpen(true);
   }
 }
