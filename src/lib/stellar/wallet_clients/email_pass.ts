@@ -7,6 +7,7 @@ import { WalletType } from "package/connect_wallet/src/lib/enums";
 import { auth } from "~/lib/firebase/firebase-auth";
 import { type ConnectWalletStateModel } from "package/connect_wallet/src/state/connect_wallet_state";
 import { addrShort } from "~/lib/utils";
+import { authResSchema, submitActiveAcountXdr } from "./utils";
 
 export async function emailPassLogin(walletState: ConnectWalletStateModel) {
   const user = auth.currentUser;
@@ -28,11 +29,8 @@ export async function emailPassLogin(walletState: ConnectWalletStateModel) {
         },
       );
 
-      const publicKeySchema = z.object({
-        publicKey: z.string().min(56),
-      });
-
-      const { publicKey } = await publicKeySchema.parseAsync(res.data);
+      const { publicKey, extra } = await authResSchema.parseAsync(res.data);
+      await submitActiveAcountXdr(extra);
 
       walletState.setUserData(
         publicKey,

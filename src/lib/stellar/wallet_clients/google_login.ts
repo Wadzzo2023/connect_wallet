@@ -3,12 +3,12 @@ import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import axios from "axios";
 import toast from "react-hot-toast";
 
-import { z } from "zod";
 import { WalletType } from "package/connect_wallet/src/lib/enums";
 import { auth } from "~/lib/firebase/firebase-auth";
 import { type ConnectWalletStateModel } from "package/connect_wallet/src/state/connect_wallet_state";
 import { addrShort } from "~/lib/utils";
 import { env } from "~/env.mjs";
+import { authResSchema, submitActiveAcountXdr } from "./utils";
 
 export async function googleLogin(walletState: ConnectWalletStateModel) {
   const provider = new GoogleAuthProvider();
@@ -34,11 +34,9 @@ export async function googleLogin(walletState: ConnectWalletStateModel) {
       },
     );
 
-    const publicKeySchema = z.object({
-      publicKey: z.string().min(56),
-    });
+    const { publicKey, extra } = await authResSchema.parseAsync(res.data);
 
-    const { publicKey } = await publicKeySchema.parseAsync(res.data);
+    await submitActiveAcountXdr(extra);
 
     walletState.setUserData(
       publicKey,
