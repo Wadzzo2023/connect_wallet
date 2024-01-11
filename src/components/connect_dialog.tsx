@@ -111,11 +111,11 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
     <Dialog open={state.isOpen} onOpenChange={closeModal}>
       <DialogContent
         className={twMerge(
-          "scrollbar-style !m-0 max-h-screen overflow-y-auto !rounded-xl !p-3 ",
+          "scrollbar-style !m-0 max-h-screen overflow-y-auto !rounded-xl bg-base-100  !p-3 ",
           className,
         )}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between bg-red-100">
           {walletState.isAva ? (
             <div className="flex items-center gap-2 ">
               <span
@@ -228,7 +228,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
             ) : (
               <>
                 <AllButtons />
-                <div className="flex justify-center">
+                <div className="mt-4 flex justify-center">
                   <button
                     className="btn btn-link text-center"
                     onClick={() => handleEmailPassLogin()}
