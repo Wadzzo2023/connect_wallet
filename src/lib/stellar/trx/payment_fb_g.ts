@@ -1,6 +1,6 @@
 import { Server, Transaction, xdr } from "stellar-sdk";
-import { networkPassphrase } from "../../../../../../src/lib/stellar/constant";
-import { STELLAR_URL } from "../../../../../../src/lib/stellar/constant";
+import { networkPassphrase } from "../constant";
+import { STELLAR_URL } from "../constant";
 import log from "~/lib/logger/logger";
 
 export async function submitSignedXDRToServer4User(signed_xdr: string) {
