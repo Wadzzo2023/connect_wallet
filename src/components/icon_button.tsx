@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import clsx from "clsx";
 import Image from "next/image";
 import type { MouseEventHandler } from "react";
 
@@ -17,7 +18,7 @@ export default function IconButton(props: IconButtonProps) {
   return (
     <div
       data-tip={props.toolTips}
-      className={props.toolTips ? "tooltip w-full" : ""}
+      className={clsx(props.toolTips ? "tooltip w-full" : "", "flex-1")}
     >
       <button
         disabled={props.disable}
@@ -34,7 +35,7 @@ export default function IconButton(props: IconButtonProps) {
           props.disable
             ? "opacity-70"
             : "hover:border-blue-400 hover:bg-blue-100 hover:text-blue-500/80"
-        }`}
+        } `}
       >
         {props.imageUrl ? (
           <Image

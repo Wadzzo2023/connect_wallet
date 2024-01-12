@@ -226,9 +226,33 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                 <LoginPage />
               </div>
             ) : (
-              <>
+              <div className="flex flex-col gap-4">
                 <AllButtons />
-                <div className="mt-4 flex justify-center">
+                <div className="w-full ">
+                  <div className="hidden w-full gap-4 bg-red-100 sm:flex">
+                    <IconButton
+                      toolTips={toolTipsAddr(WalletType.frieghter)}
+                      isSelected={
+                        walletState.walletType == WalletType.frieghter
+                      }
+                      onClick={() => {
+                        return void freighterLogin(walletState);
+                      }}
+                      imageUrl="/images/wallets/freighter.png"
+                      text="Freighter"
+                    />
+                    <IconButton
+                      toolTips={toolTipsAddr(WalletType.rabet)}
+                      isSelected={walletState.walletType == WalletType.rabet}
+                      onClick={() => {
+                        return void rabetLogin(walletState);
+                      }}
+                      imageUrl="/images/wallets/rabet.png"
+                      text="Rabet"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-center">
                   <button
                     className="btn btn-link text-center"
                     onClick={() => handleEmailPassLogin()}
@@ -236,7 +260,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                     Login with email and password
                   </button>
                 </div>
-              </>
+              </div>
             )}
           </div>
         </div>
@@ -302,29 +326,6 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
           imageUrl="/images/wallets/walletconnect.png"
           text={initializing && wcLoading ? "Initializing..." : "WalletConnect"}
         />
-        <div className="hidden w-full sm:grid">
-          <IconButton
-            toolTips={toolTipsAddr(WalletType.frieghter)}
-            isSelected={walletState.walletType == WalletType.frieghter}
-            onClick={() => {
-              return void freighterLogin(walletState);
-            }}
-            imageUrl="/images/wallets/freighter.png"
-            text="Freighter"
-          />
-        </div>
-
-        <div className="hidden w-full sm:grid">
-          <IconButton
-            toolTips={toolTipsAddr(WalletType.rabet)}
-            isSelected={walletState.walletType == WalletType.rabet}
-            onClick={() => {
-              return void rabetLogin(walletState);
-            }}
-            imageUrl="/images/wallets/rabet.png"
-            text="Rabet"
-          />
-        </div>
       </div>
     );
   }
