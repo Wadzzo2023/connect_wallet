@@ -229,7 +229,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
               <div className="flex flex-col gap-4">
                 <AllButtons />
                 <div className="w-full ">
-                  <div className="hidden w-full gap-4 bg-red-100 sm:flex">
+                  <div className="hidden w-full gap-4 sm:flex">
                     <IconButton
                       toolTips={toolTipsAddr(WalletType.frieghter)}
                       isSelected={
