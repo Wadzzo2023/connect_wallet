@@ -75,3 +75,25 @@ export async function albedoSignTrx(xdr: string, customer: string) {
       return false;
     });
 }
+
+export async function albedoSignTrxInTestNet(xdr: string, customer: string) {
+  return albedo
+    .tx({
+      xdr: xdr,
+      pubkey: customer,
+      network: "testnet",
+      submit: true,
+    })
+    .then((res) => {
+      console.info(res);
+
+      // if (resB.horizonResult.successful !== undefined){
+      //   return resB.horizonResult.successful as boolean
+      // }
+      return true;
+    })
+    .catch((e) => {
+      console.info("payment refected", e);
+      return false;
+    });
+}
