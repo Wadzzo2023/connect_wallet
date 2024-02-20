@@ -17,13 +17,17 @@ export interface ConnectWalletStateModel {
     email?: string,
     uid?: string,
   ) => void;
+
+  needSign: (
+    walletType: WalletType,
+  ) => { email: string; uid: string } | undefined;
 }
 
 export const useConnectWalletStateStore = create(
   subscribeWithSelector(
     devtools(
       persist<ConnectWalletStateModel>(
-        (set) => ({
+        (set, get) => ({
           walletType: WalletType.none,
           isAva: false,
           pubkey: "",
@@ -46,6 +50,19 @@ export const useConnectWalletStateStore = create(
               uid: uid,
               email: email,
             });
+          },
+          needSign(walletType) {
+            if (
+              walletType == WalletType.emailPass ||
+              walletType == WalletType.facebook ||
+              walletType == WalletType.google
+            ) {
+              const email = get().email;
+              const uid = get().uid;
+              if (email && uid) {
+                return { email, uid };
+              }
+            }
           },
         }),
         {
