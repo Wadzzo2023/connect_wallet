@@ -18,9 +18,7 @@ export interface ConnectWalletStateModel {
     uid?: string,
   ) => void;
 
-  needSign: (
-    walletType: WalletType,
-  ) => { email: string; uid: string } | undefined;
+  needSign: () => { email: string; uid: string } | undefined;
 }
 
 export const useConnectWalletStateStore = create(
@@ -51,11 +49,11 @@ export const useConnectWalletStateStore = create(
               email: email,
             });
           },
-          needSign(walletType) {
+          needSign() {
             if (
-              walletType == WalletType.emailPass ||
-              walletType == WalletType.facebook ||
-              walletType == WalletType.google
+              get().walletType == WalletType.emailPass ||
+              get().walletType == WalletType.facebook ||
+              get().walletType == WalletType.google
             ) {
               const email = get().email;
               const uid = get().uid;
