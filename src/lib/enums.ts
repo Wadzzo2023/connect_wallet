@@ -8,4 +8,5 @@ export enum WalletType {
   facebook,
   google,
   emailPass,
+  isAdmin,
 }
