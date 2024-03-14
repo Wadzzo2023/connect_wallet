@@ -22,7 +22,10 @@ import {
   walletConnectSignTransaction,
   walletConnectSignTransactionSubmitterWrapper,
 } from "./wallet_clients/wallet_connect";
-import { submitSignedXDRToServer4User } from "./trx/payment_fb_g";
+import {
+  submitSignedXDRToServer4User,
+  submitSignedXDRToServer4UserTestnet,
+} from "./trx/payment_fb_g";
 
 import axios from "axios";
 import { STELLAR_URL } from "./constant";
@@ -66,7 +69,9 @@ export async function clientsign(props: {
   test?: boolean;
 }) {
   if (props.test) {
-    return albedoSignTrxInTestNet(props.presignedxdr, props.pubkey);
+    if (props.walletType == WalletType.isAdmin)
+      return await submitSignedXDRToServer4UserTestnet(props.presignedxdr);
+    return await albedoSignTrxInTestNet(props.presignedxdr, props.pubkey);
   }
   switch (props.walletType) {
     case WalletType.albedo:
