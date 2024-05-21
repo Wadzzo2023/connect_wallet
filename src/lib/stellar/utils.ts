@@ -28,7 +28,7 @@ import {
 } from "./trx/payment_fb_g";
 
 import axios from "axios";
-import { STELLAR_URL } from "./constant";
+import { STELLAR_URL, networkPassphrase } from "./constant";
 
 export const recursiveTransactionSubmitter = async (
   transaction: Transaction<Memo<MemoType>, Operation[]>,
@@ -57,8 +57,9 @@ export const recursiveTransactionSubmitter = async (
 
 export async function submitSignedXDRToServer(signed_xdr: string) {
   const envelop = xdr.TransactionEnvelope.fromXDR(signed_xdr, "base64");
-  const transaction = new Transaction(envelop, Networks.PUBLIC);
+  const transaction = new Transaction(envelop, networkPassphrase);
   const res = await recursiveTransactionSubmitter(transaction);
+
   return res;
 }
 
