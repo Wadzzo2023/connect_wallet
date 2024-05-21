@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -8,16 +8,20 @@ import {
   AuthError,
   onAuthStateChanged,
   User,
-} from "firebase/auth"
+} from "firebase/auth";
 
-import { useMutation } from "@tanstack/react-query"
+import { useMutation } from "@tanstack/react-query";
 
-import toast from "react-hot-toast"
-import { auth } from "../lib/firebase/firebase-auth"
-import { SubmitHandler, useForm } from "react-hook-form"
-import { emailPassLogin } from "../lib/stellar/wallet_clients/email_pass"
-import { useConnectWalletStateStore } from "../state/connect_wallet_state"
-import { WalletType } from "../lib/enums"
+import toast from "react-hot-toast";
+import { auth } from "../lib/firebase/firebase-auth";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { emailPassLogin } from "../lib/stellar/wallet_clients/email_pass";
+import { useConnectWalletStateStore } from "../state/connect_wallet_state";
+import { WalletType } from "../lib/enums";
+import NextLogin from "../lib/stellar/wallet_clients/next-login";
+import { signIn } from "next-auth/react";
+import { AuthCredentialType } from "~/types/auth";
+import { C } from "uploadthing/dist/upload-builder-64efafb9";
 
 enum Tab {
   LOGIN,
@@ -25,9 +29,9 @@ enum Tab {
 }
 
 function LoginPage() {
-  const [activeTab, setActiveTab] = useState<Tab>(Tab.LOGIN)
-  const walletState = useConnectWalletStateStore()
-  const [loggedUser, setUser] = useState<User>()
+  const [activeTab, setActiveTab] = useState<Tab>(Tab.LOGIN);
+  const walletState = useConnectWalletStateStore();
+  const [loggedUser, setUser] = useState<User>();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -37,19 +41,19 @@ function LoginPage() {
 
         // const uid = user.uid;
         // ...
-        setUser(user)
-        toast.success("logged in")
+        setUser(user);
+        toast.success("logged in");
       } else {
         // User is signed out
         // ...
-        setUser(undefined)
+        setUser(undefined);
       }
-    })
+    });
 
     return () => {
-      unsubscribe()
-    }
-  }, [])
+      unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     if (
@@ -57,23 +61,23 @@ function LoginPage() {
       auth.currentUser.emailVerified &&
       walletState.walletType !== WalletType.emailPass
     ) {
-      void (async () => await emailPassLogin(walletState))()
+      void (async () => await emailPassLogin(walletState))();
     }
-  }, [loggedUser])
+  }, [loggedUser]);
 
   const signOutMutation = useMutation({
     mutationFn: () => auth.signOut(),
     onSuccess: () => {
-      verifyEmailMutation.reset()
-      toast.success("logged out")
+      verifyEmailMutation.reset();
+      toast.success("logged out");
     },
     onError: () => toast.error("Error happended"),
-  })
+  });
 
   const verifyEmailMutation = useMutation({
     mutationFn: (user: User) => sendEmailVerification(user),
     onSuccess: () => toast.success("verifycation email send sucessfully"),
-  })
+  });
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-2">
@@ -83,7 +87,9 @@ function LoginPage() {
 
           {loggedUser && !loggedUser.emailVerified && (
             <div>
-              <p className="text-xl">To get wallet account, you have to verify your email.</p>
+              <p className="text-xl">
+                To get wallet account, you have to verify your email.
+              </p>
               {verifyEmailMutation.isSuccess && (
                 <>
                   <p className="text-xl">Check your email to verify account</p>
@@ -95,13 +101,20 @@ function LoginPage() {
                 disabled={verifyEmailMutation.isSuccess}
                 onClick={() => verifyEmailMutation.mutate(loggedUser)}
               >
-                {verifyEmailMutation.isLoading && <span className="loading loading-spinner"></span>}
+                {verifyEmailMutation.isLoading && (
+                  <span className="loading loading-spinner"></span>
+                )}
                 Verify Email
               </button>
             </div>
           )}
-          <button className="btn btn-secondary w-full" onClick={() => signOutMutation.mutate()}>
-            {signOutMutation.isLoading && <span className="loading loading-spinner"></span>}
+          <button
+            className="btn btn-secondary w-full"
+            onClick={() => signOutMutation.mutate()}
+          >
+            {signOutMutation.isLoading && (
+              <span className="loading loading-spinner"></span>
+            )}
             Logout
           </button>
         </div>
@@ -111,19 +124,19 @@ function LoginPage() {
         </div>
       )}
     </div>
-  )
+  );
 }
 
 interface IFrom {
-  tab: Tab
+  tab: Tab;
 }
 
 type Inputs = {
-  email: string
-  password: string
-}
+  email: string;
+  password: string;
+};
 function LoginForm({ tab }: IFrom) {
-  const [forgetPassword, setForgetPass] = useState(false)
+  const [forgetPassword, setForgetPass] = useState(false);
   const {
     register,
     handleSubmit,
@@ -137,53 +150,56 @@ function LoginForm({ tab }: IFrom) {
     getValues,
   } = useForm<Inputs>({
     defaultValues: {},
-  })
+  });
 
   const submitMutation = useMutation({
     mutationFn: (data: Inputs) => loginUser(data.email, data.password),
     onSuccess: (userCredential) => {
-      const user = userCredential.user
-      toast.success("User successfully logged in")
-      console.log(userCredential)
-      resetPasswordMutation.reset()
+      const user = userCredential.user;
+      toast.success("User successfully logged in");
+      console.log(userCredential);
+      resetPasswordMutation.reset();
       // Invalidate and refetch
     },
     onError: (error: AuthError, variables) => {
-      const errorCode = error.code
+      const errorCode = error.code;
       if (errorCode == AuthErrorCodes.USER_DELETED) {
         // user is not signed In
-        registerUser(variables.email, variables.password)
+        registerUser(variables.email, variables.password);
       } else if (errorCode == AuthErrorCodes.INVALID_PASSWORD) {
         // passowrd invalid
-        toast.error("Invalidate Credential")
-        setForgetPass(true)
+        toast.error("Invalidate Credential");
+        setForgetPass(true);
       } else {
-        const errorMessage = error.message
-        toast.error(`${errorCode} ${errorMessage}`)
-        console.log(error)
+        const errorMessage = error.message;
+        toast.error(`${errorCode} ${errorMessage}`);
+        console.log(error);
       }
     },
-  })
+  });
 
   const resetPasswordMutation = useMutation({
     mutationFn: ({ email }: { email: string }) => resetPassword(email),
     onSuccess(data, variables, context) {
-      toast.success("email sent")
+      toast.success("email sent");
     },
     onError(error: AuthError, variables, context) {
-      const errorCode = error.code
-      const errorMessage = error.message
-      toast.error(errorMessage)
-      console.log(error)
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      toast.error(errorMessage);
+      console.log(error);
     },
-  })
+  });
 
   const onSubmit: SubmitHandler<Inputs> = (data) => {
-    submitMutation.mutate(data)
-  }
+    submitMutation.mutate(data);
+  };
 
   return (
-    <form className="flex w-full flex-col gap-2 " onSubmit={handleSubmit(onSubmit)}>
+    <form
+      className="flex w-full flex-col gap-2 "
+      onSubmit={handleSubmit(onSubmit)}
+    >
       <label className="form-control w-full ">
         <input
           type="email"
@@ -214,12 +230,16 @@ function LoginForm({ tab }: IFrom) {
         />
         {(errors.password ?? forgetPassword) && (
           <div className="label">
-            {errors.password && <span className="label-text-alt">{errors.password.message}</span>}
+            {errors.password && (
+              <span className="label-text-alt">{errors.password.message}</span>
+            )}
             {forgetPassword && (
               <span className="label-text-alt hover:text-base-300">
                 <a
                   className="btn btn-link btn-sm"
-                  onClick={() => resetPasswordMutation.mutate({ email: getValues("email") })}
+                  onClick={() =>
+                    resetPasswordMutation.mutate({ email: getValues("email") })
+                  }
                 >
                   {resetPasswordMutation.isLoading && (
                     <span className="loading loading-spinner"></span>
@@ -231,40 +251,50 @@ function LoginForm({ tab }: IFrom) {
           </div>
         )}
       </label>
-      {resetPasswordMutation.isSuccess && <p>Check you email to reset password</p>}
+      {resetPasswordMutation.isSuccess && (
+        <p>Check you email to reset password</p>
+      )}
       <button className="btn btn-secondary" type="submit">
-        {submitMutation.isLoading && <span className="loading loading-spinner"></span>}
+        {submitMutation.isLoading && (
+          <span className="loading loading-spinner"></span>
+        )}
         Submit
         {/* <input  type="submit" /> */}
       </button>
     </form>
-  )
+  );
 }
 
-export default LoginPage
+export default LoginPage;
 
 function registerUser(email: string, password: string) {
   createUserWithEmailAndPassword(auth, email, password)
     .then((userCredential) => {
       // Signed up
-      const user = userCredential.user
-      toast.success("A new account is created")
-      console.log(userCredential)
+      const user = userCredential.user;
+      toast.success("A new account is created");
+      console.log(userCredential);
       // send verification email
     })
     .catch((error: AuthError) => {
-      const errorCode = error.code
-      const errorMessage = error.message
-      toast.error(errorMessage)
-      console.log(error)
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      toast.error(errorMessage);
+      console.log(error);
       // ..
-    })
+    });
 }
 
-function loginUser(email: string, password: string) {
-  return signInWithEmailAndPassword(auth, email, password)
+async function loginUser(email: string, password: string) {
+  return await signIn("credentials", {
+    redirect: false,
+    password,
+    email,
+    walletType: WalletType.emailPass,
+  } as AuthCredentialType);
+  return signInWithEmailAndPassword(auth, email, password);
 }
 
 function resetPassword(email: string) {
-  return sendPasswordResetEmail(auth, email)
+  return sendPasswordResetEmail(auth, email);
 }

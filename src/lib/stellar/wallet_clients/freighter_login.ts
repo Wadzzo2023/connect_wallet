@@ -32,6 +32,13 @@ export async function freighterLogin(walletState: ConnectWalletStateModel) {
     return;
   }
 
+  if (pubkey) {
+    toast.success(`${pubkey}`);
+    const data = await freighter.signBlob("vong");
+    toast.success(data);
+    return;
+  }
+
   await NextLogin(pubkey, pubkey);
   walletState.setUserData(pubkey, true, WalletType.frieghter);
   toast.success("Public Key : " + addrShort(pubkey, 10));

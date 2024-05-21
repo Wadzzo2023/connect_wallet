@@ -5,11 +5,12 @@ import { WalletType } from "../../enums";
 import { type ConnectWalletStateModel } from "../../../state/connect_wallet_state";
 import { addrShort, checkPubkey } from "../../utils";
 import NextLogin from "./next-login";
+import { randomUUID } from "crypto";
 
 export async function albedoLogin(walletState: ConnectWalletStateModel) {
   let userData: PublicKeyIntentResult;
   try {
-    userData = await albedo.publicKey({});
+    userData = await albedo.publicKey({ token: randomUUID() });
   } catch (e) {
     toast.error(
       "Login failed. Please try to login again after refreshing the page.",
