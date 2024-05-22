@@ -13,7 +13,10 @@ import { type W3mModal } from "@web3modal/ui";
 import { Web3Modal } from "@web3modal/standalone";
 import { getSdkError } from "@walletconnect/utils";
 import { WalletType } from "../../../lib/enums";
-import type { ConnectWalletStateModel } from "../../../state/connect_wallet_state";
+import {
+  useConnectWalletStateStore,
+  type ConnectWalletStateModel,
+} from "../../../state/connect_wallet_state";
 import { checkPubkey, addrShort } from "../../../lib/utils";
 import NextLogin from "./next-login";
 
@@ -79,7 +82,8 @@ const timeout = (ms: any, message: any) => {
   });
 };
 
-export async function walletConnectLogin(walletState: ConnectWalletStateModel) {
+export async function walletConnectLogin() {
+  const walletState = useConnectWalletStateStore();
   if (signClient) {
     const { uri, approval } = await signClient.connect({
       requiredNamespaces: namespaces,

@@ -5,13 +5,17 @@ import toast from "react-hot-toast";
 
 import { WalletType } from "../../../lib/enums";
 import { auth } from "../../../lib/firebase/firebase-auth";
-import { type ConnectWalletStateModel } from "../../../state/connect_wallet_state";
+import {
+  useConnectWalletStateStore,
+  type ConnectWalletStateModel,
+} from "../../../state/connect_wallet_state";
 import { addrShort } from "../../../lib/utils";
 import { authResSchema, submitActiveAcountXdr } from "./utils";
 import { USER_ACOUNT_URL } from "../constant";
 import NextLogin from "./next-login";
 
-export async function googleLogin(walletState: ConnectWalletStateModel) {
+export async function googleLogin() {
+  const walletState = useConnectWalletStateStore();
   const provider = new GoogleAuthProvider();
   provider.addScope("https://www.googleapis.com/auth/userinfo.email");
 

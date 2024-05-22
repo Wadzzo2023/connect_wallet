@@ -6,7 +6,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import toast from "react-hot-toast";
 import { WalletType } from "../../../lib/enums";
-import { type ConnectWalletStateModel } from "../../../state/connect_wallet_state";
+import {
+  useConnectWalletStateStore,
+  type ConnectWalletStateModel,
+} from "../../../state/connect_wallet_state";
 import { checkPubkey, addrShort } from "../../../lib/utils";
 import { submitSignedXDRToServer } from "../utils";
 import NextLogin from "./next-login";
@@ -16,7 +19,8 @@ interface ConnectResult {
   error?: string;
 }
 
-export async function rabetLogin(walletState: ConnectWalletStateModel) {
+export async function rabetLogin() {
+  const walletState = useConnectWalletStateStore();
   let pubkey: string;
   const rabet = (window as any).rabet;
 

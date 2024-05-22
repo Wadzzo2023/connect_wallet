@@ -21,7 +21,6 @@ import { WalletType } from "../lib/enums";
 import NextLogin from "../lib/stellar/wallet_clients/next-login";
 import { signIn } from "next-auth/react";
 import { AuthCredentialType } from "~/types/auth";
-import { C } from "uploadthing/dist/upload-builder-64efafb9";
 
 enum Tab {
   LOGIN,
@@ -154,11 +153,20 @@ function LoginForm({ tab }: IFrom) {
 
   const submitMutation = useMutation({
     mutationFn: (data: Inputs) => loginUser(data.email, data.password),
-    onSuccess: (userCredential) => {
-      const user = userCredential.user;
-      toast.success("User successfully logged in");
-      console.log(userCredential);
-      resetPasswordMutation.reset();
+    onSuccess: (res, variables) => {
+      if (res?.ok) {
+        toast.success("User successfully logged in");
+        resetPasswordMutation.reset();
+      }
+      if (res?.error) {
+        const error = res.error;
+        if (error.includes(AuthErrorCodes.USER_DELETED)) {
+          registerUser(variables.email, variables.password);
+        } else if (error.includes(AuthErrorCodes.INVALID_PASSWORD)) {
+          toast.error("Invalidate Credential");
+          setForgetPass(true);
+        } else toast.error(res.error);
+      }
       // Invalidate and refetch
     },
     onError: (error: AuthError, variables) => {
@@ -292,7 +300,7 @@ async function loginUser(email: string, password: string) {
     email,
     walletType: WalletType.emailPass,
   } as AuthCredentialType);
-  return signInWithEmailAndPassword(auth, email, password);
+  // return signInWithEmailAndPassword(auth, email, password);
 }
 
 function resetPassword(email: string) {
