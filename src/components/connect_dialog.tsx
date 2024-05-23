@@ -33,6 +33,7 @@ import { useConnectWalletStateStore } from "../state/connect_wallet_state";
 import { useWCIStore } from "../state/wallect_connect_import";
 import useFacebookiOSUserAgent from "./hook";
 import LoginPage from "./login";
+import Loading from "~/components/wallete/loading";
 
 interface ConnectDialogProps {
   className: string;
@@ -46,6 +47,8 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
   const [isAccountActivateLoading, setAccountActivateLoading] = useState(false);
   const [isEmailPassOpen, setEmailPassOpen] = useState(false);
   const dialogModalState = useDialogStore();
+
+  const [selectedWallet, setSelectedWallet] = useState(WalletType.none);
   // const walletState = useConnectWalletStateStore();
   // const wciStore = useWCIStore();
 
@@ -55,10 +58,6 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
 
   const iosFbToltipMsg =
     "Facebook Ios app don't support google login, try another browser";
-
-  // useEffect(() => {
-  //   void checkStatus();
-  // }, [walletState.pubkey]);
 
   // function closeModal() {
   //   state.setIsOpen(false);
@@ -99,8 +98,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
     if (user && selectedWallet == wallateType) return addrShort(user.id, 10);
   }
 
-  // const session = useSession();
-  if (session.status === "loading") return <div>Loading...</div>;
+  if (session.status === "loading") return <Loading />;
 
   // const walletState = {
   //   isAva: session.status == "authenticated",
@@ -122,8 +120,13 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
       );
     }
   }
+  useEffect(() => {
+    void checkStatus();
+    const w = session.data?.user.walletType;
+    setSelectedWallet(w ?? WalletType.none);
+  }, [session.status]);
 
-  const selectedWallet = session.data?.user.walletType ?? WalletType.none;
+  console.log("selected Wallet", selectedWallet);
 
   return (
     <Dialog
