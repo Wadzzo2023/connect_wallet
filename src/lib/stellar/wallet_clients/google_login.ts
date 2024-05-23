@@ -10,49 +10,67 @@ import {
   type ConnectWalletStateModel,
 } from "../../../state/connect_wallet_state";
 import { addrShort } from "../../../lib/utils";
-import { authResSchema, submitActiveAcountXdr } from "./utils";
+import { submitActiveAcountXdr } from "./utils";
 import { USER_ACOUNT_URL } from "../constant";
 import NextLogin from "./next-login";
+import { ProviderNextLogin } from "~/utils/next-login";
+import { getPublicKeyAPISchema } from "./type";
 
 export async function googleLogin() {
-  const walletState = useConnectWalletStateStore();
   const provider = new GoogleAuthProvider();
   provider.addScope("https://www.googleapis.com/auth/userinfo.email");
 
   try {
     const user = (await signInWithPopup(auth, provider)).user;
-    const { uid } = user;
     const { email } = user.providerData[0]!;
+    // const email = user.email;
+    if (email) {
+      const idToken = await user.getIdToken();
 
-    await auth.signOut();
-    const res = await toast.promise(
-      axios.get(USER_ACOUNT_URL, {
-        params: {
-          uid,
+      const loginRes = await toast.promise(
+        ProviderNextLogin({
           email,
-        },
-      }),
-      {
-        loading: "Getting public key...",
-        success: "Received public key",
-        error: "Unable to get public key",
-      },
-    );
+          token: idToken,
+          walletType: WalletType.google,
+        }),
+        { error: "Login error", loading: "Please Wait", success: null },
+      );
 
-    const { publicKey, extra } = await authResSchema.parseAsync(res.data);
+      if (loginRes?.error) toast.error(loginRes.error);
 
-    await submitActiveAcountXdr(extra);
+      console.log(loginRes);
 
-    await NextLogin(publicKey, publicKey);
-    walletState.setUserData(
-      publicKey,
-      true,
-      WalletType.google,
-      uid,
-      email ?? undefined,
-    );
-    toast.success("Public Key : " + addrShort(publicKey, 10));
+      // await auth.signOut();
+      if (loginRes?.ok) {
+        if (loginRes?.ok) toast.success("Login Successfull");
+        const res = await toast.promise(
+          axios.get(USER_ACOUNT_URL, {
+            params: {
+              uid: user.uid,
+              email,
+            },
+          }),
+          {
+            loading: "Getting public key...",
+            success: "Received public key",
+            error: "Unable to get public key",
+          },
+        );
+
+        const { publicKey, extra } = await getPublicKeyAPISchema.parseAsync(
+          res.data,
+        );
+
+        await submitActiveAcountXdr(extra);
+      }
+    } else {
+      toast.error("Email dont exist");
+    }
+
+    // await NextLogin(publicKey, publicKey);
+    // toast.success("Public Key : " + addrShort(publicKey, 10));
   } catch (error) {
     console.error(error);
+    // toast.error(error.message)
   }
 }

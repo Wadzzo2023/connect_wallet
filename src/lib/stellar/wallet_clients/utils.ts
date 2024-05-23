@@ -2,15 +2,7 @@ import { z } from "zod";
 import { submitSignedXDRToServer4User } from "../trx/payment_fb_g";
 import toast from "react-hot-toast";
 
-export const extraSchema = z.object({
-  isAccActive: z.boolean(),
-  xdr: z.string().optional(),
-});
-
-export const authResSchema = z.object({
-  publicKey: z.string().min(56),
-  extra: extraSchema,
-});
+import { extraSchema } from "./type";
 
 export async function submitActiveAcountXdr(
   extra: z.infer<typeof extraSchema>,

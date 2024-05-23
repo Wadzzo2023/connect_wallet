@@ -5,14 +5,10 @@ import { useDialogStore } from "../state/connect_wallet_dialog";
 import { useConnectWalletStateStore } from "../state/connect_wallet_state";
 import { addrShort } from "../lib/utils";
 import { LogOut } from "lucide-react";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 
 export default function ConnectWalletButton() {
-  const walletState = useConnectWalletStateStore();
-  const [isWalletAva, setIsWalletAva] = useState(false);
-  useEffect(() => {
-    setIsWalletAva(walletState.isAva);
-  }, [walletState.isAva]);
+  const session = useSession();
 
   const setDialog = useDialogStore();
   return (
@@ -28,23 +24,25 @@ export default function ConnectWalletButton() {
             />
           </div>
           <span className="text-base-content">
-            {isWalletAva ? addrShort(walletState.pubkey) : "Connect Wallet"}
+            {session.status == "authenticated"
+              ? addrShort(session.data.user.id)
+              : "Connect Wallet"}
           </span>
         </div>
       </button>
-      {isWalletAva && <LogOutButon />}
+      {session.status == "authenticated" && <LogOutButon />}
     </div>
   );
 }
 
 function LogOutButon() {
   const walletState = useConnectWalletStateStore();
-   async function disconnectWallet() {
-     await signOut({
-       redirect: false,
-     });
-     walletState.removeUserDat();
-   }
+  async function disconnectWallet() {
+    await signOut({
+      redirect: false,
+    });
+    // walletState.removeUserDat();
+  }
   return (
     <button className="btn btn-circle" onClick={disconnectWallet}>
       <LogOut />

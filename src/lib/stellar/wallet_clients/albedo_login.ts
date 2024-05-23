@@ -27,12 +27,15 @@ export async function albedoLogin() {
   }
 
   // console.log(userData);
-  const res = await AlbedoNextLogin({
-    pubkey: userData.pubkey,
-    signature: userData.signature,
-    token: token,
-    walletType: WalletType.albedo,
-  });
+  const res = await toast.promise(
+    AlbedoNextLogin({
+      pubkey: userData.pubkey,
+      signature: userData.signature,
+      token: token,
+      walletType: WalletType.albedo,
+    }),
+    { error: "Login error", loading: "Please wait", success: null },
+  );
 
   if (res?.ok) {
     toast.success("Public Key : " + addrShort(userData.pubkey, 10));
