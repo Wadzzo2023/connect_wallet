@@ -6,17 +6,25 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import toast from "react-hot-toast";
 import { WalletType } from "../../../lib/enums";
-import { type ConnectWalletStateModel } from "../../../state/connect_wallet_state";
+import {
+  useConnectWalletStateStore,
+  type ConnectWalletStateModel,
+} from "../../../state/connect_wallet_state";
 import { checkPubkey, addrShort } from "../../../lib/utils";
 import { submitSignedXDRToServer } from "../utils";
 import NextLogin from "./next-login";
+import { networkPassphrase } from "../constant";
+import { GetDummyXDR } from "../trx/deummy";
+import { api } from "~/utils/api";
+import { WalleteNextLogin } from "~/utils/next-login";
 
 interface ConnectResult {
   publicKey: string;
   error?: string;
 }
+const network = process.env.NEXT_PUBLIC_STELLAR_PUBNET ? "mainnet" : "testnet";
 
-export async function rabetLogin(walletState: ConnectWalletStateModel) {
+export async function rabetLogin() {
   let pubkey: string;
   const rabet = (window as any).rabet;
 
@@ -30,7 +38,7 @@ export async function rabetLogin(walletState: ConnectWalletStateModel) {
   try {
     let result = await (rabet.connect() as Promise<ConnectResult>);
     pubkey = result.publicKey;
-    await (rabet.disconnect() as Promise<void>);
+    // await (rabet.disconnect() as Promise<void>);
   } catch (e: any) {
     toast.error(e.error);
     return;
@@ -43,14 +51,53 @@ export async function rabetLogin(walletState: ConnectWalletStateModel) {
     return;
   }
 
-  await NextLogin(pubkey, pubkey);
-  walletState.setUserData(pubkey, true, WalletType.rabet);
-  toast.success("Public Key : " + addrShort(pubkey, 10));
+  // now pubkey is valid
+  try {
+    const xdrRes = await fetch("/api/xdr?pubkey=" + pubkey);
+    if (xdrRes.ok) {
+      const data = (await xdrRes.json()) as { xdr: string };
+      console.log(data);
+      const toastId = toast.loading("Please wait");
+      rabet
+        .sign(data.xdr, network)
+        .then(async (result: SignResult) => {
+          if (result.xdr) {
+            const loginRes = await WalleteNextLogin({
+              pubkey,
+              signedXDR: result.xdr,
+              walletType: WalletType.rabet,
+            });
+
+            if (loginRes?.ok) {
+              toast.success("Login successful");
+              toast.success("Public Key : " + addrShort(pubkey, 10));
+            }
+
+            if (loginRes?.error) {
+              toast.error(loginRes.error);
+            }
+          } else {
+            toast.error("XDR signing failed");
+          }
+        })
+        .catch((error: any) => {
+          console.log(error);
+        })
+        .finally(async () => {
+          toast.dismiss(toastId);
+          await (rabet.disconnect() as Promise<void>);
+        });
+
+      // await NextLogin(pubkey, pubkey);
+      // walletState.setUserData(pubkey, true, WalletType.rabet);
+    }
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 export async function rabetXdrSingXdr(xdr: string, pubKey: string) {
   console.info(pubKey);
-  const network = "mainnet";
 
   let rabet: any;
   if (!(window as any).rabet) {

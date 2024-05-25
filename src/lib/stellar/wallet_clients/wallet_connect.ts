@@ -13,9 +13,13 @@ import { type W3mModal } from "@web3modal/ui";
 import { Web3Modal } from "@web3modal/standalone";
 import { getSdkError } from "@walletconnect/utils";
 import { WalletType } from "../../../lib/enums";
-import type { ConnectWalletStateModel } from "../../../state/connect_wallet_state";
+import {
+  useConnectWalletStateStore,
+  type ConnectWalletStateModel,
+} from "../../../state/connect_wallet_state";
 import { checkPubkey, addrShort } from "../../../lib/utils";
 import NextLogin from "./next-login";
+import { WalleteNextLogin } from "~/utils/next-login";
 
 type Method = "stellar_signXDR" | "stellar_signAndSubmitXDR";
 
@@ -79,7 +83,7 @@ const timeout = (ms: any, message: any) => {
   });
 };
 
-export async function walletConnectLogin(walletState: ConnectWalletStateModel) {
+export async function walletConnectLogin() {
   if (signClient) {
     const { uri, approval } = await signClient.connect({
       requiredNamespaces: namespaces,
@@ -110,8 +114,50 @@ export async function walletConnectLogin(walletState: ConnectWalletStateModel) {
             );
             return;
           }
+
+          // here add dummy transection
+          const toastId = toast.loading("Please wait");
+          try {
+            const xdrRes = await fetch("/api/xdr?pubkey=" + pubkey);
+
+            if (xdrRes.ok) {
+              const data = (await xdrRes.json()) as { xdr: string };
+              console.log(data);
+
+              const xdr = await walletConnectSignTransaction(
+                data.xdr,
+                "stellar_signXDR",
+              );
+
+              if (xdr) {
+                const loginRes = await WalleteNextLogin({
+                  pubkey,
+                  signedXDR: xdr,
+                  walletType: WalletType.rabet,
+                });
+
+                if (loginRes?.ok) {
+                  toast.success("Login successful");
+                  toast.success("Public Key : " + addrShort(pubkey, 10));
+                }
+
+                if (loginRes?.error) {
+                  toast.error(loginRes.error);
+                }
+              } else {
+                toast.error("XDR signing failed");
+              }
+
+              // await NextLogin(pubkey, pubkey);
+              // walletState.setUserData(pubkey, true, WalletType.rabet);
+            }
+          } catch (e) {
+            toast.dismiss(toastId);
+            console.error(e);
+          }
+
           await NextLogin(pubkey, pubkey);
-          walletState.setUserData(pubkey, true, WalletType.walletConnect);
+          // walletState.setUserData(pubkey, true, WalletType.walletConnect);
           toast.success("Public Key : " + addrShort(pubkey, 10));
         }
       } catch (e) {
