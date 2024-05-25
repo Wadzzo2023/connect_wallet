@@ -14,6 +14,7 @@ import { submitActiveAcountXdr } from "./utils";
 import { USER_ACOUNT_URL } from "../constant";
 import NextLogin from "./next-login";
 import { getPublicKeyAPISchema } from "./type";
+import { ProviderNextLogin } from "~/utils/next-login";
 
 export async function facebookLogin() {
   const walletState = useConnectWalletStateStore();
@@ -28,35 +29,46 @@ export async function facebookLogin() {
     const { uid } = user;
     const { email } = user.providerData[0]!;
 
-    await auth.signOut();
-    const res = await toast.promise(
-      axios.get(USER_ACOUNT_URL, {
-        params: {
-          uid,
-          email,
-        },
-      }),
-      {
-        loading: "Getting public key...",
-        success: "Received public key",
-        error: "Unable to get public key",
-      },
-    );
+    if (email) {
+      const idToken = await user.getIdToken();
+      const loginRes = await ProviderNextLogin({
+        email,
+        token: idToken,
+        walletType: WalletType.facebook,
+      });
+    } else {
+      toast.error("Email dont exist");
+    }
 
-    const { publicKey, extra } = await getPublicKeyAPISchema.parseAsync(
-      res.data,
-    );
-    await submitActiveAcountXdr(extra);
+    // await auth.signOut();
+    // const res = await toast.promise(
+    //   axios.get(USER_ACOUNT_URL, {
+    //     params: {
+    //       uid,
+    //       email,
+    //     },
+    //   }),
+    //   {
+    //     loading: "Getting public key...",
+    //     success: "Received public key",
+    //     error: "Unable to get public key",
+    //   },
+    // );
 
-    await NextLogin(publicKey, publicKey);
-    walletState.setUserData(
-      publicKey,
-      true,
-      WalletType.facebook,
-      uid,
-      email ?? undefined,
-    );
-    toast.success("Public Key : " + addrShort(publicKey, 10));
+    // const { publicKey, extra } = await getPublicKeyAPISchema.parseAsync(
+    //   res.data,
+    // );
+    // await submitActiveAcountXdr(extra);
+
+    // await NextLogin(publicKey, publicKey);
+    // walletState.setUserData(
+    //   publicKey,
+    //   true,
+    //   WalletType.facebook,
+    //   uid,
+    //   email ?? undefined,
+    // );
+    // toast.success("Public Key : " + addrShort(publicKey, 10));
   } catch (error) {
     console.error(error);
   }

@@ -13,14 +13,18 @@ import {
 import { checkPubkey, addrShort } from "../../../lib/utils";
 import { submitSignedXDRToServer } from "../utils";
 import NextLogin from "./next-login";
+import { networkPassphrase } from "../constant";
+import { GetDummyXDR } from "../trx/deummy";
+import { api } from "~/utils/api";
+import { RabetNextLogin } from "~/utils/next-login";
 
 interface ConnectResult {
   publicKey: string;
   error?: string;
 }
+const network = process.env.NEXT_PUBLIC_STELLAR_PUBNET ? "mainnet" : "testnet";
 
 export async function rabetLogin() {
-  const walletState = useConnectWalletStateStore();
   let pubkey: string;
   const rabet = (window as any).rabet;
 
@@ -34,7 +38,7 @@ export async function rabetLogin() {
   try {
     let result = await (rabet.connect() as Promise<ConnectResult>);
     pubkey = result.publicKey;
-    await (rabet.disconnect() as Promise<void>);
+    // await (rabet.disconnect() as Promise<void>);
   } catch (e: any) {
     toast.error(e.error);
     return;
@@ -47,14 +51,53 @@ export async function rabetLogin() {
     return;
   }
 
-  await NextLogin(pubkey, pubkey);
-  walletState.setUserData(pubkey, true, WalletType.rabet);
-  toast.success("Public Key : " + addrShort(pubkey, 10));
+  // now pubkey is valid
+  try {
+    const xdrRes = await fetch("/api/xdr?pubkey=" + pubkey);
+    if (xdrRes.ok) {
+      const data = (await xdrRes.json()) as { xdr: string };
+      console.log(data);
+      const toastId = toast.loading("Please wait");
+      rabet
+        .sign(data.xdr, network)
+        .then(async (result: SignResult) => {
+          if (result.xdr) {
+            const loginRes = await RabetNextLogin({
+              pubkey,
+              signedXDR: result.xdr,
+              walletType: WalletType.rabet,
+            });
+
+            if (loginRes?.ok) {
+              toast.success("Login successful");
+            }
+
+            if (loginRes?.error) {
+              toast.error(loginRes.error);
+            }
+          } else {
+            toast.error("XDR signing failed");
+          }
+        })
+        .catch((error: any) => {
+          console.log(error);
+        })
+        .finally(async () => {
+          toast.dismiss(toastId);
+          await (rabet.disconnect() as Promise<void>);
+        });
+
+      // await NextLogin(pubkey, pubkey);
+      // walletState.setUserData(pubkey, true, WalletType.rabet);
+      toast.success("Public Key : " + addrShort(pubkey, 10));
+    }
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 export async function rabetXdrSingXdr(xdr: string, pubKey: string) {
   console.info(pubKey);
-  const network = "mainnet";
 
   let rabet: any;
   if (!(window as any).rabet) {

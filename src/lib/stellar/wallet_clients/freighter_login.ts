@@ -39,6 +39,7 @@ export async function freighterLogin() {
   if (pubkey) {
     toast.success(`${pubkey}`);
     const data = await freighter.signBlob("vong");
+
     toast.success(data);
     return;
   }

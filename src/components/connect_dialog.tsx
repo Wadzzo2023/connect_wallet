@@ -98,8 +98,6 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
     if (user && selectedWallet == wallateType) return addrShort(user.id, 10);
   }
 
-  if (session.status === "loading") return <Loading />;
-
   // const walletState = {
   //   isAva: session.status == "authenticated",
   //   pubkey: session.data!.user.id,
@@ -128,6 +126,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
 
   console.log("selected Wallet", selectedWallet);
 
+  if (session.status === "loading") return <Loading />;
   return (
     <Dialog
       open={dialogModalState.isOpen}
