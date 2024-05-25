@@ -4,9 +4,10 @@ import { WalletType } from "../../../lib/enums";
 import { auth } from "../../../lib/firebase/firebase-auth";
 import { type ConnectWalletStateModel } from "../../../state/connect_wallet_state";
 import { addrShort } from "../../../lib/utils";
-import { authResSchema, submitActiveAcountXdr } from "./utils";
+import { submitActiveAcountXdr } from "./utils";
 import { USER_ACOUNT_URL } from "../constant";
 import NextLogin from "./next-login";
+import { getPublicKeyAPISchema } from "./type";
 
 export async function emailPassLogin(walletState: ConnectWalletStateModel) {
   const user = auth.currentUser;
@@ -29,7 +30,9 @@ export async function emailPassLogin(walletState: ConnectWalletStateModel) {
         },
       );
 
-      const { publicKey, extra } = await authResSchema.parseAsync(res.data);
+      const { publicKey, extra } = await getPublicKeyAPISchema.parseAsync(
+        res.data,
+      );
       await submitActiveAcountXdr(extra);
 
       await NextLogin(publicKey, publicKey);

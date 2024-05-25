@@ -15,10 +15,8 @@ import { useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { auth } from "../lib/firebase/firebase-auth";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { emailPassLogin } from "../lib/stellar/wallet_clients/email_pass";
 import { useConnectWalletStateStore } from "../state/connect_wallet_state";
 import { WalletType } from "../lib/enums";
-import NextLogin from "../lib/stellar/wallet_clients/next-login";
 import { signIn } from "next-auth/react";
 import { AuthCredentialType } from "~/types/auth";
 
@@ -54,15 +52,15 @@ function LoginPage() {
     };
   }, []);
 
-  useEffect(() => {
-    if (
-      auth.currentUser &&
-      auth.currentUser.emailVerified &&
-      walletState.walletType !== WalletType.emailPass
-    ) {
-      void (async () => await emailPassLogin(walletState))();
-    }
-  }, [loggedUser]);
+  // useEffect(() => {
+  //   if (
+  //     auth.currentUser &&
+  //     auth.currentUser.emailVerified &&
+  //     walletState.walletType !== WalletType.emailPass
+  //   ) {
+  //     void (async () => await emailPassLogin(walletState))();
+  //   }
+  // }, [loggedUser]);
 
   const signOutMutation = useMutation({
     mutationFn: () => auth.signOut(),
