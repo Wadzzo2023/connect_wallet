@@ -9,6 +9,9 @@ import {
 import { checkPubkey, addrShort } from "../../../lib/utils";
 import { submitSignedXDRToServer } from "../utils";
 import NextLogin from "./next-login";
+import { WalleteNextLogin } from "~/utils/next-login";
+
+const network = process.env.NEXT_PUBLIC_STELLAR_PUBNET ? "PUBLIC" : "TESTNET";
 
 export async function freighterLogin() {
   const walletState = useConnectWalletStateStore();
@@ -37,16 +40,39 @@ export async function freighterLogin() {
   }
 
   if (pubkey) {
-    toast.success(`${pubkey}`);
-    const data = await freighter.signBlob("vong");
+    const xdrRes = await toast.promise(fetch("/api/xdr?pubkey=" + pubkey), {
+      error: "Error fetching XDR",
+      loading: "Fetching XDR",
+      success: "XDR fetched",
+    });
+    if (xdrRes.ok) {
+      const data = (await xdrRes.json()) as { xdr: string };
+      console.log(data);
+      const toastId = toast.loading("Please wait");
 
-    toast.success(data);
-    return;
+      const signedXDR = await signTransaction(data.xdr, {
+        network,
+        accountToSign: pubkey,
+      });
+
+      const loginRes = await WalleteNextLogin({
+        pubkey,
+        signedXDR: signedXDR,
+        walletType: WalletType.frieghter,
+      });
+
+      if (loginRes?.ok) {
+        toast.success("Login successful");
+        toast.success("Public Key : " + addrShort(pubkey, 10));
+      }
+
+      if (loginRes?.error) {
+        toast.error(loginRes.error);
+      }
+    }
+  } else {
+    toast.error("Extension not connected. Please try again.");
   }
-
-  await NextLogin(pubkey, pubkey);
-  walletState.setUserData(pubkey, true, WalletType.frieghter);
-  toast.success("Public Key : " + addrShort(pubkey, 10));
 }
 
 export const userSignTransaction = async (xdr: string, signWith: string) => {
@@ -55,7 +81,7 @@ export const userSignTransaction = async (xdr: string, signWith: string) => {
 
   try {
     signedTransaction = await signTransaction(xdr, {
-      network: "PUBLIC",
+      network,
       accountToSign: signWith,
     });
   } catch (e) {
@@ -73,7 +99,7 @@ export const userSignTransaction = async (xdr: string, signWith: string) => {
 export const freighterSignTrx = async (xdr: string, signWith: string) => {
   try {
     const signedXDR = await signTransaction(xdr, {
-      network: "PUBLIC",
+      network,
       accountToSign: signWith,
     });
     const res = await submitSignedXDRToServer(signedXDR);

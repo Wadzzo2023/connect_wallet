@@ -16,7 +16,7 @@ import NextLogin from "./next-login";
 import { networkPassphrase } from "../constant";
 import { GetDummyXDR } from "../trx/deummy";
 import { api } from "~/utils/api";
-import { RabetNextLogin } from "~/utils/next-login";
+import { WalleteNextLogin } from "~/utils/next-login";
 
 interface ConnectResult {
   publicKey: string;
@@ -62,7 +62,7 @@ export async function rabetLogin() {
         .sign(data.xdr, network)
         .then(async (result: SignResult) => {
           if (result.xdr) {
-            const loginRes = await RabetNextLogin({
+            const loginRes = await WalleteNextLogin({
               pubkey,
               signedXDR: result.xdr,
               walletType: WalletType.rabet,
@@ -70,6 +70,7 @@ export async function rabetLogin() {
 
             if (loginRes?.ok) {
               toast.success("Login successful");
+              toast.success("Public Key : " + addrShort(pubkey, 10));
             }
 
             if (loginRes?.error) {
@@ -89,7 +90,6 @@ export async function rabetLogin() {
 
       // await NextLogin(pubkey, pubkey);
       // walletState.setUserData(pubkey, true, WalletType.rabet);
-      toast.success("Public Key : " + addrShort(pubkey, 10));
     }
   } catch (e) {
     console.error(e);
