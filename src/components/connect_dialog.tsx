@@ -192,15 +192,6 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                       imageUrl="/images/wallets/rabet.png"
                       text="Rabet"
                     />
-                    <IconButton
-                      toolTips={toolTipsAddr(WalletType.apple)}
-                      isSelected={selectedWallet == WalletType.apple}
-                      onClick={() => {
-                        return void appleLogin();
-                      }}
-                      imageUrl="/images/wallets/rabet.png"
-                      text="Rabet"
-                    />
                   </div>
                 </div>
                 <div className="flex justify-center">
@@ -224,12 +215,21 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
   function AllButtons() {
     return (
       <div className="mt-2 grid gap-4 sm:grid-cols-2">
-        <IconButton
+        {/* <IconButton
           toolTips={toolTipsAddr(WalletType.facebook)}
           isSelected={selectedWallet == WalletType.facebook}
           onClick={() => void facebookLogin()}
           imageUrl="/images/wallets/facebook.png"
           text="Facebook"
+        /> */}
+        <IconButton
+          toolTips={toolTipsAddr(WalletType.apple)}
+          isSelected={selectedWallet == WalletType.apple}
+          onClick={() => {
+            return void appleLogin();
+          }}
+          imageUrl="/images/icons/apple.png"
+          text="Apple"
         />
 
         <div
