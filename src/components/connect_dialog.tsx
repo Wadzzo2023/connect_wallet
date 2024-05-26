@@ -34,6 +34,7 @@ import { useWCIStore } from "../state/wallect_connect_import";
 import useFacebookiOSUserAgent from "./hook";
 import LoginPage from "./login";
 import Loading from "~/components/wallete/loading";
+import { appleLogin } from "../lib/stellar/wallet_clients/apple_login";
 
 interface ConnectDialogProps {
   className: string;
@@ -187,6 +188,15 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                       isSelected={selectedWallet == WalletType.rabet}
                       onClick={() => {
                         return void rabetLogin();
+                      }}
+                      imageUrl="/images/wallets/rabet.png"
+                      text="Rabet"
+                    />
+                    <IconButton
+                      toolTips={toolTipsAddr(WalletType.apple)}
+                      isSelected={selectedWallet == WalletType.apple}
+                      onClick={() => {
+                        return void appleLogin();
                       }}
                       imageUrl="/images/wallets/rabet.png"
                       text="Rabet"

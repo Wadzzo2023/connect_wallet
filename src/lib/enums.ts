@@ -9,4 +9,5 @@ export enum WalletType {
   google,
   emailPass,
   isAdmin,
+  apple,
 }
