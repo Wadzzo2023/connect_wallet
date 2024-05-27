@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import IconButton from "./icon_button";
 import { Dialog, DialogContent } from "./ui/dialog";
 
-import { setCookie } from "cookies-next";
 import { toast } from "react-hot-toast";
 
 import {
@@ -16,10 +15,11 @@ import { ArrowLeft } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import CopyToClipboard from "react-copy-to-clipboard";
 import { twMerge } from "tailwind-merge";
+import Loading from "~/components/wallete/loading";
 import { WalletType } from "../lib/enums";
 import { checkStellarAccountActivity } from "../lib/stellar/utils";
 import { albedoLogin } from "../lib/stellar/wallet_clients/albedo_login";
-import { facebookLogin } from "../lib/stellar/wallet_clients/facebook_login";
+import { appleLogin } from "../lib/stellar/wallet_clients/apple_login";
 import { freighterLogin } from "../lib/stellar/wallet_clients/freighter_login";
 import { googleLogin } from "../lib/stellar/wallet_clients/google_login";
 import { rabetLogin } from "../lib/stellar/wallet_clients/rabe_login";
@@ -29,12 +29,9 @@ import {
 } from "../lib/stellar/wallet_clients/wallet_connect";
 import { addrShort } from "../lib/utils";
 import { useDialogStore } from "../state/connect_wallet_dialog";
-import { useConnectWalletStateStore } from "../state/connect_wallet_state";
 import { useWCIStore } from "../state/wallect_connect_import";
 import useFacebookiOSUserAgent from "./hook";
 import LoginPage from "./login";
-import Loading from "~/components/wallete/loading";
-import { appleLogin } from "../lib/stellar/wallet_clients/apple_login";
 
 interface ConnectDialogProps {
   className: string;
@@ -50,7 +47,6 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
   const dialogModalState = useDialogStore();
 
   const [selectedWallet, setSelectedWallet] = useState(WalletType.none);
-  // const walletState = useConnectWalletStateStore();
   // const wciStore = useWCIStore();
 
   const isIosFBuser = useFacebookiOSUserAgent();
