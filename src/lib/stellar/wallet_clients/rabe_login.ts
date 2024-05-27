@@ -5,18 +5,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import toast from "react-hot-toast";
-import { WalletType } from "../../../lib/enums";
-import {
-  useConnectWalletStateStore,
-  type ConnectWalletStateModel,
-} from "../../../state/connect_wallet_state";
-import { checkPubkey, addrShort } from "../../../lib/utils";
-import { submitSignedXDRToServer } from "../utils";
-import NextLogin from "./next-login";
-import { networkPassphrase } from "../constant";
-import { GetDummyXDR } from "../trx/deummy";
-import { api } from "~/utils/api";
 import { WalleteNextLogin } from "~/utils/next-login";
+import { WalletType } from "../../../lib/enums";
+import { addrShort, checkPubkey } from "../../../lib/utils";
+import { submitSignedXDRToServer } from "../utils";
 
 interface ConnectResult {
   publicKey: string;

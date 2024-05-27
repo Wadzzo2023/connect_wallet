@@ -64,11 +64,13 @@ export async function submitSignedXDRToServer(signed_xdr: string) {
 }
 
 export async function clientsign(props: {
-  walletType: WalletType;
+  walletType?: WalletType;
   presignedxdr: string;
-  pubkey: string;
+  pubkey?: string;
   test?: boolean;
 }) {
+  if (!props.walletType || !props.pubkey)
+    throw Error("no pubkey or walletType");
   if (props.test) {
     if (props.walletType == WalletType.isAdmin) {
       return await submitSignedXDRToServer4UserTestnet(props.presignedxdr);

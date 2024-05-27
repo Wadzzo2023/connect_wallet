@@ -1,11 +1,9 @@
 import Image from "next/image";
 
-import { useEffect, useState } from "react";
-import { useDialogStore } from "../state/connect_wallet_dialog";
-import { useConnectWalletStateStore } from "../state/connect_wallet_state";
-import { addrShort } from "../lib/utils";
 import { LogOut } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
+import { addrShort } from "../lib/utils";
+import { useDialogStore } from "../state/connect_wallet_dialog";
 
 export default function ConnectWalletButton() {
   const session = useSession();
@@ -36,7 +34,6 @@ export default function ConnectWalletButton() {
 }
 
 function LogOutButon() {
-  const walletState = useConnectWalletStateStore();
   async function disconnectWallet() {
     await signOut({
       redirect: false,

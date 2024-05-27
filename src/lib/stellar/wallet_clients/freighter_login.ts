@@ -1,20 +1,14 @@
-import toast from "react-hot-toast";
 import freighter, { signTransaction } from "@stellar/freighter-api";
+import toast from "react-hot-toast";
 
-import { WalletType } from "../../../lib/enums";
-import {
-  useConnectWalletStateStore,
-  type ConnectWalletStateModel,
-} from "../../../state/connect_wallet_state";
-import { checkPubkey, addrShort } from "../../../lib/utils";
-import { submitSignedXDRToServer } from "../utils";
-import NextLogin from "./next-login";
 import { WalleteNextLogin } from "~/utils/next-login";
+import { WalletType } from "../../../lib/enums";
+import { addrShort, checkPubkey } from "../../../lib/utils";
+import { submitSignedXDRToServer } from "../utils";
 
 const network = process.env.NEXT_PUBLIC_STELLAR_PUBNET ? "PUBLIC" : "TESTNET";
 
 export async function freighterLogin() {
-  const walletState = useConnectWalletStateStore();
   let pubkey: string;
   const freighterConnected = await freighter.isConnected();
   if (!freighterConnected) {

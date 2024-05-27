@@ -1,24 +1,22 @@
-import React, { useEffect, useState } from "react";
 import {
+  AuthError,
+  AuthErrorCodes,
+  User,
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
+  onAuthStateChanged,
   sendEmailVerification,
   sendPasswordResetEmail,
-  AuthErrorCodes,
-  AuthError,
-  onAuthStateChanged,
-  User,
 } from "firebase/auth";
+import { useEffect, useState } from "react";
 
 import { useMutation } from "@tanstack/react-query";
 
-import toast from "react-hot-toast";
-import { auth } from "../lib/firebase/firebase-auth";
-import { SubmitHandler, useForm } from "react-hook-form";
-import { useConnectWalletStateStore } from "../state/connect_wallet_state";
-import { WalletType } from "../lib/enums";
 import { signIn } from "next-auth/react";
+import { SubmitHandler, useForm } from "react-hook-form";
+import toast from "react-hot-toast";
 import { AuthCredentialType } from "~/types/auth";
+import { WalletType } from "../lib/enums";
+import { auth } from "../lib/firebase/firebase-auth";
 
 enum Tab {
   LOGIN,
@@ -27,7 +25,6 @@ enum Tab {
 
 function LoginPage() {
   const [activeTab, setActiveTab] = useState<Tab>(Tab.LOGIN);
-  const walletState = useConnectWalletStateStore();
   const [loggedUser, setUser] = useState<User>();
 
   useEffect(() => {

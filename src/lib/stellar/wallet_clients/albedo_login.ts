@@ -6,7 +6,6 @@ import { WalletType } from "../../enums";
 import { addrShort, checkPubkey } from "../../utils";
 
 export async function albedoLogin() {
-  // const walletState = useConnectWalletStateStore();
   const token = Math.random().toString(36).substring(2, 12);
   let userData: PublicKeyIntentResult;
   try {

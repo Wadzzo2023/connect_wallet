@@ -3,18 +3,12 @@ import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import axios from "axios";
 import toast from "react-hot-toast";
 
+import { ProviderNextLogin } from "~/utils/next-login";
 import { WalletType } from "../../../lib/enums";
 import { auth } from "../../../lib/firebase/firebase-auth";
-import {
-  useConnectWalletStateStore,
-  type ConnectWalletStateModel,
-} from "../../../state/connect_wallet_state";
-import { addrShort } from "../../../lib/utils";
-import { submitActiveAcountXdr } from "./utils";
 import { USER_ACOUNT_URL } from "../constant";
-import NextLogin from "./next-login";
-import { ProviderNextLogin } from "~/utils/next-login";
 import { getPublicKeyAPISchema } from "./type";
+import { submitActiveAcountXdr } from "./utils";
 
 export async function googleLogin() {
   const provider = new GoogleAuthProvider();

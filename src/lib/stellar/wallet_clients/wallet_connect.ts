@@ -7,19 +7,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import SignClient from "@walletconnect/sign-client";
-import { ConfigCtrl, ModalCtrl } from "@web3modal/core";
-import toast from "react-hot-toast";
-import { type W3mModal } from "@web3modal/ui";
-import { Web3Modal } from "@web3modal/standalone";
 import { getSdkError } from "@walletconnect/utils";
-import { WalletType } from "../../../lib/enums";
-import {
-  useConnectWalletStateStore,
-  type ConnectWalletStateModel,
-} from "../../../state/connect_wallet_state";
-import { checkPubkey, addrShort } from "../../../lib/utils";
-import NextLogin from "./next-login";
+import { ConfigCtrl, ModalCtrl } from "@web3modal/core";
+import { Web3Modal } from "@web3modal/standalone";
+import { type W3mModal } from "@web3modal/ui";
+import toast from "react-hot-toast";
 import { WalleteNextLogin } from "~/utils/next-login";
+import { WalletType } from "../../../lib/enums";
+import { addrShort, checkPubkey } from "../../../lib/utils";
+import NextLogin from "./next-login";
 
 type Method = "stellar_signXDR" | "stellar_signAndSubmitXDR";
 
