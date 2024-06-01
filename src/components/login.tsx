@@ -11,12 +11,12 @@ import { useEffect, useState } from "react";
 
 import { useMutation } from "@tanstack/react-query";
 
-import { signIn } from "next-auth/react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { AuthCredentialType } from "~/types/auth";
 import { WalletType } from "../lib/enums";
 import { auth } from "../lib/firebase/firebase-auth";
+import { signIn } from "../lib/signIn";
 
 enum Tab {
   LOGIN,
