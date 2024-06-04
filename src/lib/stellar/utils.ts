@@ -4,12 +4,13 @@ import {
   xdr,
   Transaction,
   Networks,
-  Server,
-  type Horizon,
+  Horizon,
+  // type Horizon.BaseResponse,
   type Memo,
   type MemoType,
   type Operation,
-} from "stellar-sdk";
+} from "@stellar/stellar-sdk";
+
 import { WalletType } from "../enums";
 import {
   albedoSignTrx,
@@ -32,10 +33,10 @@ import { STELLAR_URL, networkPassphrase } from "./constant";
 
 export const recursiveTransactionSubmitter = async (
   transaction: Transaction<Memo<MemoType>, Operation[]>,
-): Promise<Horizon.SubmitTransactionResponse> => {
-  let result: Horizon.SubmitTransactionResponse;
+): Promise<Horizon.HorizonApi.SubmitTransactionResponse> => {
+  let result: Horizon.HorizonApi.SubmitTransactionResponse;
   try {
-    const server = new Server("https://horizon.stellar.org");
+    const server = new Horizon.Server("https://horizon.stellar.org");
 
     result = await server.submitTransaction(transaction);
     return result;

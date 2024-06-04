@@ -1,16 +1,16 @@
 import {
   Keypair,
   Operation,
-  Server,
   TransactionBuilder,
   Asset,
+  Horizon,
   Transaction,
-} from "stellar-sdk";
+} from "@stellar/stellar-sdk";
 import { STELLAR_URL, networkPassphrase } from "../constant";
 import { MOTHER_SECRET } from "~/lib/stellar/marketplace/SECRET";
 
 export async function GetDummyXDR({ pubkey }: { pubkey: string }) {
-  const server = new Server(STELLAR_URL);
+  const server = new Horizon.Server(STELLAR_URL);
 
   const serverKeypair = Keypair.fromSecret(MOTHER_SECRET);
 
@@ -26,7 +26,7 @@ export async function GetDummyXDR({ pubkey }: { pubkey: string }) {
     // sending platform fee.
     .addOperation(
       Operation.payment({
-        amount: "0.00001",
+        amount: "0.000001",
         source: pubkey,
         asset: Asset.native(),
         destination: serverKeypair.publicKey(),
