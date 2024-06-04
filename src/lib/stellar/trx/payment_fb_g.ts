@@ -1,4 +1,5 @@
-import { Networks, Server, Transaction, xdr } from "stellar-sdk";
+import { Networks, Transaction, xdr, Horizon } from "@stellar/stellar-sdk";
+
 import { networkPassphrase } from "../constant";
 import { STELLAR_URL } from "../constant";
 
@@ -6,7 +7,7 @@ export async function submitSignedXDRToServer4User(signed_xdr: string) {
   try {
     const envelop = xdr.TransactionEnvelope.fromXDR(signed_xdr, "base64");
     const transaction = new Transaction(envelop, networkPassphrase);
-    const server = new Server(STELLAR_URL);
+    const server = new Horizon.Server(STELLAR_URL);
 
     return server
       .submitTransaction(transaction)
@@ -38,7 +39,7 @@ export async function submitSignedXDRToServer4UserTestnet(signed_xdr: string) {
   try {
     const envelop = xdr.TransactionEnvelope.fromXDR(signed_xdr, "base64");
     const transaction = new Transaction(envelop, Networks.TESTNET);
-    const server = new Server("https://horizon-testnet.stellar.org");
+    const server = new Horizon.Server("https://horizon-testnet.stellar.org");
 
     return server
       .submitTransaction(transaction)

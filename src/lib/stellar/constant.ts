@@ -1,4 +1,4 @@
-import { Networks } from "stellar-sdk";
+import { Networks } from "@stellar/stellar-sdk";
 
 export const networkPassphrase = process.env.NEXT_PUBLIC_STELLAR_PUBNET
   ? Networks.PUBLIC
