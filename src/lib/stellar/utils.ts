@@ -79,8 +79,6 @@ export async function clientsign(props: {
     return await albedoSignTrxInTestNet(props.presignedxdr, props.pubkey);
   }
 
-  if (props.walletType == WalletType.isAdmin)
-    return await submitSignedXDRToServer4User(props.presignedxdr);
   switch (props.walletType) {
     case WalletType.albedo:
       return await albedoSignTrx(props.presignedxdr, props.pubkey);
@@ -100,6 +98,8 @@ export async function clientsign(props: {
     case WalletType.facebook:
       return await submitSignedXDRToServer4User(props.presignedxdr);
     case WalletType.emailPass:
+      return await submitSignedXDRToServer4User(props.presignedxdr);
+    case WalletType.isAdmin:
       return await submitSignedXDRToServer4User(props.presignedxdr);
     default:
       return false;
