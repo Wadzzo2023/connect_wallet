@@ -30,6 +30,7 @@ import {
 
 import axios from "axios";
 import { STELLAR_URL, networkPassphrase } from "./constant";
+import toast from "react-hot-toast";
 
 export const recursiveTransactionSubmitter = async (
   transaction: Transaction<Memo<MemoType>, Operation[]>,
@@ -70,8 +71,10 @@ export async function clientsign(props: {
   pubkey?: string;
   test?: boolean;
 }) {
-  if (!props.walletType || !props.pubkey)
-    throw Error("no pubkey or walletType");
+  if (!props.walletType || !props.pubkey) {
+    toast.error("problem with wallet type or pubkey, please reconnect wallet");
+    return false;
+  }
   if (props.test) {
     if (props.walletType == WalletType.isAdmin) {
       return await submitSignedXDRToServer4UserTestnet(props.presignedxdr);
