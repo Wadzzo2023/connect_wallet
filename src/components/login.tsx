@@ -16,7 +16,9 @@ import toast from "react-hot-toast";
 import { AuthCredentialType } from "~/types/auth";
 import { WalletType } from "../lib/enums";
 import { auth } from "../lib/firebase/firebase-auth";
-import { signIn } from "../lib/signIn";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { signIn } from "next-auth/react";
 
 enum Tab {
   LOGIN,
@@ -30,16 +32,9 @@ function LoginPage() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        // User is signed in, see docs for a list of available properties
-        // https://firebase.google.com/docs/reference/js/firebase.User
-
-        // const uid = user.uid;
-        // ...
         setUser(user);
         toast.success("logged in");
       } else {
-        // User is signed out
-        // ...
         setUser(undefined);
       }
     });
@@ -72,6 +67,12 @@ function LoginPage() {
     mutationFn: (user: User) => sendEmailVerification(user),
     onSuccess: () => toast.success("verifycation email send sucessfully"),
   });
+
+  useEffect(() => {
+    if (!z.string().email().safeParse(loggedUser?.email).success) {
+      auth.signOut();
+    }
+  }, [loggedUser]);
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-2">
@@ -125,10 +126,12 @@ interface IFrom {
   tab: Tab;
 }
 
-type Inputs = {
-  email: string;
-  password: string;
-};
+const formSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+});
+
+type Inputs = z.infer<typeof formSchema>;
 function LoginForm({ tab }: IFrom) {
   const [forgetPassword, setForgetPass] = useState(false);
   const {
@@ -142,7 +145,8 @@ function LoginForm({ tab }: IFrom) {
     setError,
     clearErrors,
     getValues,
-  } = useForm<Inputs>({
+  } = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {},
   });
 
@@ -220,13 +224,7 @@ function LoginForm({ tab }: IFrom) {
       <label className="form-control w-full max-w-md">
         <input
           required
-          {...register("password", {
-            required: true,
-            minLength: {
-              value: 6,
-              message: "Password length should be minimum 6",
-            },
-          })}
+          {...register("password")}
           type="password"
           placeholder="Enter you password"
           className="input input-bordered w-full "
@@ -289,6 +287,7 @@ function registerUser(email: string, password: string) {
 }
 
 async function loginUser(email: string, password: string) {
+  await auth.signOut();
   return await signIn("credentials", {
     redirect: false,
     password,
