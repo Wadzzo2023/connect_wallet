@@ -119,7 +119,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
     void checkStatus();
     const w = session.data?.user.walletType;
     setSelectedWallet(w ?? WalletType.none);
-  }, [session.status]);
+  }, [session]);
 
   // console.log("selected Wallet", selectedWallet);
 
