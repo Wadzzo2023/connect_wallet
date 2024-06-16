@@ -26,20 +26,19 @@ export async function albedoLogin() {
   }
 
   // console.log(userData);
-  const res = await toast.promise(
-    AlbedoNextLogin({
-      pubkey: userData.pubkey,
-      signature: userData.signature,
-      token: token,
-      walletType: WalletType.albedo,
-    }),
-    { error: "Login error", loading: "Please wait", success: null },
-  );
-
-  if (res?.ok) {
-    toast.success("Public Key : " + addrShort(userData.pubkey, 10));
-  }
-  if (res?.error) toast.error(res.error);
+  const toastId = toast.loading("Please wait...");
+  AlbedoNextLogin({
+    pubkey: userData.pubkey,
+    signature: userData.signature,
+    token: token,
+    walletType: WalletType.albedo,
+  })
+    .then((res) => {
+      if (res?.ok)
+        toast.success("Public Key : " + addrShort(userData.pubkey, 10));
+      if (res?.error) toast.error(res.error);
+    })
+    .finally(() => toast.dismiss(toastId));
 }
 
 export async function getSingedXdrAlbedo(xdr: string, customer: string) {
