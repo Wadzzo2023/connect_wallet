@@ -9,6 +9,7 @@ import { auth } from "../../../lib/firebase/firebase-auth";
 import { USER_ACOUNT_URL } from "../constant";
 import { getPublicKeyAPISchema } from "./type";
 import { submitActiveAcountXdr } from "./utils";
+import { addrShort } from "../../utils";
 
 export async function googleLogin() {
   const provider = new GoogleAuthProvider();
@@ -20,43 +21,33 @@ export async function googleLogin() {
     // const email = user.email;
     if (email) {
       const idToken = await user.getIdToken();
+      const toastId = toast.loading("Please wait...");
 
-      const loginRes = await toast.promise(
-        ProviderNextLogin({
-          email,
-          token: idToken,
-          walletType: WalletType.google,
-        }),
-        { error: "Login error", loading: "Please Wait", success: null },
-      );
+      ProviderNextLogin({
+        email,
+        token: idToken,
+        walletType: WalletType.google,
+      })
+        .then(async (res) => {
+          if (res?.ok) {
+            toast.success("Login Successfull");
+            // activate account
+            const res = await axios.get(USER_ACOUNT_URL, {
+              params: {
+                uid: user.uid,
+                email,
+              },
+            });
 
-      if (loginRes?.error) toast.error(loginRes.error);
+            const { publicKey, extra } = await getPublicKeyAPISchema.parseAsync(
+              res.data,
+            );
 
-      console.log(loginRes);
-
-      // await auth.signOut();
-      if (loginRes?.ok) {
-        if (loginRes?.ok) toast.success("Login Successfull");
-        const res = await toast.promise(
-          axios.get(USER_ACOUNT_URL, {
-            params: {
-              uid: user.uid,
-              email,
-            },
-          }),
-          {
-            loading: "Getting public key...",
-            success: "Received public key",
-            error: "Unable to get public key",
-          },
-        );
-
-        const { publicKey, extra } = await getPublicKeyAPISchema.parseAsync(
-          res.data,
-        );
-
-        await submitActiveAcountXdr(extra);
-      }
+            await submitActiveAcountXdr(extra);
+          }
+          if (res?.error) toast.error(res.error);
+        })
+        .finally(() => toast.dismiss(toastId));
     } else {
       toast.error("Email dont exist");
     }

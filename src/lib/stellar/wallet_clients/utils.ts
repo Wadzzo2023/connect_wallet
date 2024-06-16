@@ -11,7 +11,7 @@ export async function submitActiveAcountXdr(
     if (extra.xdr) {
       const res = await toast.promise(submitSignedXDRToServer4User(extra.xdr), {
         loading: "Activating account...",
-        success: "Request complited",
+        success: "Submitted to stellar",
         error: "While activating account error happened, Try again later",
       });
 
