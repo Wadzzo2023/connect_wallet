@@ -19,6 +19,7 @@ import { auth } from "../lib/firebase/firebase-auth";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
+import { Button } from "../shadcn/ui/button";
 
 enum Tab {
   LOGIN,
@@ -70,7 +71,9 @@ function LoginPage() {
 
   useEffect(() => {
     if (!z.string().email().safeParse(loggedUser?.email).success) {
-      auth.signOut();
+      auth.signOut().catch((error) => {
+        console.error("Error signing out", error);
+      });
     }
   }, [loggedUser]);
 
@@ -114,7 +117,7 @@ function LoginPage() {
           </button>
         </div>
       ) : (
-        <div className="w-full max-w-md px-4">
+        <div className="w-full max-w-md">
           <LoginForm tab={activeTab} />
         </div>
       )}
@@ -204,7 +207,7 @@ function LoginForm({ tab }: IFrom) {
 
   return (
     <form
-      className="flex w-full flex-col gap-2 "
+      className="flex w-full flex-col gap-2 rounded-lg "
       onSubmit={handleSubmit(onSubmit)}
     >
       <label className="form-control w-full ">
@@ -212,7 +215,7 @@ function LoginForm({ tab }: IFrom) {
           type="email"
           required
           {...register("email", { required: true })}
-          placeholder="Email"
+          placeholder="Enter Email"
           className="input input-bordered w-full "
         />
         {errors.email && (
@@ -226,7 +229,7 @@ function LoginForm({ tab }: IFrom) {
           required
           {...register("password")}
           type="password"
-          placeholder="Enter you password"
+          placeholder="Enter password"
           className="input input-bordered w-full "
         />
         {(errors.password ?? forgetPassword) && (
@@ -255,13 +258,13 @@ function LoginForm({ tab }: IFrom) {
       {resetPasswordMutation.isSuccess && (
         <p>Check you email to reset password</p>
       )}
-      <button className="btn btn-secondary" type="submit">
+      <Button type="submit">
         {submitMutation.isLoading && (
           <span className="loading loading-spinner"></span>
         )}
-        Submit
+        Login
         {/* <input  type="submit" /> */}
-      </button>
+      </Button>
     </form>
   );
 }

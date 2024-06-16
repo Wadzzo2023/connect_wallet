@@ -36,7 +36,8 @@ export default function ConnectWalletButton() {
 function LogOutButon() {
   async function disconnectWallet() {
     await signOut({
-      redirect: false,
+      redirect: true,
+      callbackUrl: "/",
     });
     // walletState.removeUserDat();
   }
