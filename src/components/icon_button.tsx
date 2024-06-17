@@ -13,6 +13,7 @@ interface IconButtonProps {
   isSelected?: boolean;
   toolTips?: string;
   disable?: boolean;
+  darkImageUrl?: string;
 }
 
 export default function IconButton(props: IconButtonProps) {
@@ -28,10 +29,22 @@ export default function IconButton(props: IconButtonProps) {
       >
         {props.imageUrl ? (
           <Image
-            className="h-5 w-5 rounded-full object-contain"
+            className=" block h-10 w-10 rounded-full object-contain  dark:hidden"
             height={40}
             width={40}
             src={props.imageUrl}
+            alt={props.text}
+          />
+        ) : (
+          props.icon
+        )}
+
+        {props?.darkImageUrl ? (
+          <Image
+            className="hidden h-10 w-10 rounded-full object-contain dark:block"
+            height={30}
+            width={30}
+            src={props?.darkImageUrl}
             alt={props.text}
           />
         ) : (

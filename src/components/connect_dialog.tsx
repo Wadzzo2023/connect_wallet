@@ -140,13 +140,15 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
           isSelected={selectedWallet === WalletType.apple}
           onClick={() => void appleLogin()}
           imageUrl="/images/icons/apple.png"
+          darkImageUrl="/images/wallets/apple-white.png"
           text="CONTINUE WITH APPLE"
         />
         <IconButton
           toolTips={toolTipsAddr(WalletType.google)}
           isSelected={selectedWallet === WalletType.google}
           onClick={() => void googleLogin()}
-          imageUrl="/images/wallets/google.png"
+          imageUrl="/images/wallets/google-white.png"
+          darkImageUrl="/images/wallets/google-white.png"
           text="CONTINUE WITH GOOGLE"
           disable={isIosFBuser ?? false}
         />
