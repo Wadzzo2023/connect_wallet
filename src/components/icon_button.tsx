@@ -14,6 +14,7 @@ interface IconButtonProps {
   toolTips?: string;
   disable?: boolean;
   darkImageUrl?: string;
+  className?: string;
 }
 
 export default function IconButton(props: IconButtonProps) {
@@ -22,16 +23,17 @@ export default function IconButton(props: IconButtonProps) {
       data-tip={props.toolTips}
       className={clsx(props.toolTips ? "tooltip w-full" : "", "flex-1")}
     >
-      <Button
-        variant="outline"
-        className="  flex w-full items-center justify-center"
+      <button
+        className={clsx(
+          `flex w-full items-center justify-${props.justify}${props.className}`,
+        )}
         onClick={props.onClick}
       >
         {props.imageUrl ? (
           <Image
-            className=" block h-10 w-10 rounded-full object-contain  dark:hidden"
-            height={40}
-            width={40}
+            className=" h-5 w-5  rounded-full object-contain  "
+            height={30}
+            width={30}
             src={props.imageUrl}
             alt={props.text}
           />
@@ -39,19 +41,8 @@ export default function IconButton(props: IconButtonProps) {
           props.icon
         )}
 
-        {props?.darkImageUrl ? (
-          <Image
-            className="hidden h-10 w-10 rounded-full object-contain dark:block"
-            height={30}
-            width={30}
-            src={props?.darkImageUrl}
-            alt={props.text}
-          />
-        ) : (
-          props.icon
-        )}
         <span className="ml-2">{props.text}</span>
-      </Button>
+      </button>
     </div>
   );
 }

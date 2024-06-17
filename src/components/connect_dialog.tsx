@@ -41,6 +41,10 @@ import { Label } from "@radix-ui/react-label";
 import { Button } from "../shadcn/ui/button";
 
 import { Badge } from "../shadcn/ui/badge";
+import Image from "next/image";
+import Link from "next/link";
+import { router } from "@trpc/server";
+import { useRouter } from "next/router";
 
 interface ConnectDialogProps {
   className: string;
@@ -49,7 +53,7 @@ interface ConnectDialogProps {
 export default function ConnectDialog({ className }: ConnectDialogProps) {
   const [isAccountActivate, setAccountActivate] = useState(false);
   const [isAccountActivateLoading, setAccountActivateLoading] = useState(false);
-
+  const router = useRouter();
   const dialogModalState = useDialogStore();
   const [selectedWallet, setSelectedWallet] = useState(WalletType.none);
   const isIosFBuser = useFacebookiOSUserAgent();
@@ -139,16 +143,46 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
           toolTips={toolTipsAddr(WalletType.apple)}
           isSelected={selectedWallet === WalletType.apple}
           onClick={() => void appleLogin()}
-          imageUrl="/images/icons/apple.png"
-          darkImageUrl="/images/wallets/apple-white.png"
+          className="mb-2 inline-flex items-center rounded-lg bg-[#050708] px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-[#050708]/90 focus:outline-none focus:ring-4 focus:ring-[#050708]/50 dark:hover:bg-[#050708]/30 dark:focus:ring-[#050708]/50"
+          icon={
+            <svg
+              className="mr-2 h-5 w-5"
+              aria-hidden="true"
+              focusable="false"
+              data-prefix="fab"
+              data-icon="apple"
+              role="img"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 384 512"
+            >
+              <path
+                fill="currentColor"
+                d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"
+              />
+            </svg>
+          }
           text="CONTINUE WITH APPLE"
         />
         <IconButton
           toolTips={toolTipsAddr(WalletType.google)}
           isSelected={selectedWallet === WalletType.google}
           onClick={() => void googleLogin()}
-          imageUrl="/images/wallets/google-white.png"
-          darkImageUrl="/images/wallets/google-white.png"
+          className="mb-2 inline-flex items-center rounded-lg bg-[#4285F4] px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-[#4285F4]/90 focus:outline-none focus:ring-4 focus:ring-[#4285F4]/50 dark:focus:ring-[#4285F4]/55"
+          icon={
+            <svg
+              className="mr-2 h-4 w-4"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="currentColor"
+              viewBox="0 0 18 19"
+            >
+              <path
+                fillRule="evenodd"
+                d="M8.842 18.083a8.8 8.8 0 0 1-8.65-8.948 8.841 8.841 0 0 1 8.8-8.652h.153a8.464 8.464 0 0 1 5.7 2.257l-2.193 2.038A5.27 5.27 0 0 0 9.09 3.4a5.882 5.882 0 0 0-.2 11.76h.124a5.091 5.091 0 0 0 5.248-4.057L14.3 11H9V8h8.34c.066.543.095 1.09.088 1.636-.086 5.053-3.463 8.449-8.4 8.449l-.186-.002Z"
+                clipRule="evenodd"
+              />
+            </svg>
+          }
           text="CONTINUE WITH GOOGLE"
           disable={isIosFBuser ?? false}
         />
@@ -195,6 +229,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                 <TabsContent value="stellar">
                   <div className="grid grid-cols-2 gap-1">
                     <IconButton
+                      className="mb-2 me-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
                       toolTips={toolTipsAddr(WalletType.frieghter)}
                       isSelected={selectedWallet === WalletType.frieghter}
                       onClick={() => void freighterLogin()}
@@ -202,6 +237,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                       text="Freighter"
                     />
                     <IconButton
+                      className="mb-2 me-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
                       toolTips={toolTipsAddr(WalletType.rabet)}
                       isSelected={selectedWallet === WalletType.rabet}
                       onClick={() => void rabetLogin()}
@@ -209,6 +245,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                       text="Rabet"
                     />
                     <IconButton
+                      className="mb-2 me-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
                       toolTips={toolTipsAddr(WalletType.albedo)}
                       isSelected={selectedWallet === WalletType.albedo}
                       onClick={() => void albedoLogin()}
@@ -228,9 +265,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                 <div className="md:text-md text-sm  ">
                   <span>
                     <i className="font-semibold text-red-500">
-                      {" "}
-                      DON{"'"}T TAP OUTSIDE THE MODAL WHILE CONNECTING WALLET OR
-                      TRANSACTION PROCESS
+                      DON{"'"}T TAP OUTSIDE THIS WINDOW WHILE ANY PROCESS
                     </i>
                   </span>
                 </div>
@@ -256,12 +291,31 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
               </div>
             </div>
 
-            <Button
-              variant="secondary"
-              className="w-full p-6 text-start text-xs"
-            >
-              WORKS WITH <br /> LOBSTR MOBILE APP
-            </Button>
+            <div className=" focus:ring-2 focus:ring-red-500">
+              <Button
+                variant="outline"
+                onClick={() =>
+                  router.push(
+                    "https://github.com/Lobstrco/lobstr-browser-extension/tree/main",
+                  )
+                }
+                className=" h-full w-full p-3 text-start text-xs"
+              >
+                <div className="flex items-center">
+                  <Image
+                    src="/images/icons/labstr.png"
+                    alt="qr-code"
+                    width={20}
+                    height={20}
+                    className="mr-2"
+                  />
+                  <span className="font-bold">
+                    WORKING WITH <br />
+                    LABSTR MOBILE APP
+                  </span>
+                </div>
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </>
@@ -385,6 +439,7 @@ function WCButton({
   const wciStore = useWCIStore();
   return (
     <IconButton
+      className="mb-2 me-2 rounded-lg bg-gray-800 px-5 py-2.5 text-sm font-medium text-white  hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
       disable={wcLoading}
       toolTips={toolTipsAddr(WalletType.walletConnect)}
       isSelected={selectedWallet === WalletType.walletConnect}
