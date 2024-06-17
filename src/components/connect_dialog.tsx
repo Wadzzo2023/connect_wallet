@@ -10,6 +10,7 @@ import {
 
 import {
   ArrowLeft,
+  ArrowUpCircle,
   BadgeCheck,
   BadgeX,
   QrCodeIcon,
@@ -45,6 +46,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { router } from "@trpc/server";
 import { useRouter } from "next/router";
+import clsx from "clsx";
 
 interface ConnectDialogProps {
   className: string;
@@ -193,8 +195,8 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
   function WalletLogin({ authUser }: { authUser: boolean }) {
     return (
       <>
-        <DialogContent className=" grid min-h-[600px] w-full grid-cols-1 overflow-y-auto p-2 md:max-w-fit lg:grid-cols-3">
-          <div className="flex flex-1 flex-col items-center justify-center bg-gray-100 p-4 dark:bg-gray-900 md:p-12 lg:col-span-2">
+        <DialogContent className="flex h-1/2 min-h-[600px] min-w-fit grid-cols-1 items-start justify-center overflow-y-auto p-2 lg:grid  lg:grid-cols-3">
+          <div className="h-full w-full bg-gray-100 p-5 dark:bg-gray-900 md:p-10  lg:col-span-2">
             <div className="max-w-md space-y-6">
               {authUser ? (
                 <div className="flex items-center justify-center">
@@ -215,10 +217,14 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                 </p>
               </div>
 
-              <Tabs defaultValue="action">
-                <TabsList className="mb-5 grid grid-cols-2 bg-black dark:bg-white">
-                  <TabsTrigger value="action">Action Login</TabsTrigger>
-                  <TabsTrigger value="stellar">Stellar Login</TabsTrigger>
+              <Tabs defaultValue="action" className=" ">
+                <TabsList className="  mb-5 grid grid-cols-2 bg-black dark:bg-white">
+                  <TabsTrigger className="" value="action">
+                    Action Login
+                  </TabsTrigger>
+                  <TabsTrigger className="" value="stellar">
+                    Stellar Login
+                  </TabsTrigger>
                 </TabsList>
                 <TabsContent value="action">
                   <div className="w-full space-y-4">
@@ -227,37 +233,39 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                   </div>
                 </TabsContent>
                 <TabsContent value="stellar">
-                  <div className="grid grid-cols-2 gap-1">
-                    <IconButton
-                      className="mb-2 me-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
-                      toolTips={toolTipsAddr(WalletType.frieghter)}
-                      isSelected={selectedWallet === WalletType.frieghter}
-                      onClick={() => void freighterLogin()}
-                      imageUrl="/images/wallets/freighter.png"
-                      text="Freighter"
-                    />
-                    <IconButton
-                      className="mb-2 me-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
-                      toolTips={toolTipsAddr(WalletType.rabet)}
-                      isSelected={selectedWallet === WalletType.rabet}
-                      onClick={() => void rabetLogin()}
-                      imageUrl="/images/wallets/rabet.png"
-                      text="Rabet"
-                    />
-                    <IconButton
-                      className="mb-2 me-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
-                      toolTips={toolTipsAddr(WalletType.albedo)}
-                      isSelected={selectedWallet === WalletType.albedo}
-                      onClick={() => void albedoLogin()}
-                      imageUrl="/images/wallets/albedo.svg"
-                      text="Albedo"
-                    />
-                    <div className="sm:hidden">
-                      <WCButton
-                        toolTipsAddr={toolTipsAddr}
-                        selectedWallet={selectedWallet}
-                        text="Lobstr"
+                  <div className="">
+                    <div className="grid grid-cols-2 gap-1">
+                      <IconButton
+                        className="mb-2 me-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
+                        toolTips={toolTipsAddr(WalletType.frieghter)}
+                        isSelected={selectedWallet === WalletType.frieghter}
+                        onClick={() => void freighterLogin()}
+                        imageUrl="/images/wallets/freighter.png"
+                        text="Freighter"
                       />
+                      <IconButton
+                        className="mb-2 me-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
+                        toolTips={toolTipsAddr(WalletType.rabet)}
+                        isSelected={selectedWallet === WalletType.rabet}
+                        onClick={() => void rabetLogin()}
+                        imageUrl="/images/wallets/rabet.png"
+                        text="Rabet"
+                      />
+                      <IconButton
+                        className="mb-2 me-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
+                        toolTips={toolTipsAddr(WalletType.albedo)}
+                        isSelected={selectedWallet === WalletType.albedo}
+                        onClick={() => void albedoLogin()}
+                        imageUrl="/images/wallets/albedo.svg"
+                        text="Albedo"
+                      />
+                      <div className="sm:hidden">
+                        <WCButton
+                          toolTipsAddr={toolTipsAddr}
+                          selectedWallet={selectedWallet}
+                          text="Lobstr"
+                        />
+                      </div>
                     </div>
                   </div>
                 </TabsContent>
@@ -339,7 +347,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
               data-tip="Checking is account activated or not"
               className="tooltip tooltip-bottom "
             >
-              <ArrowPathIcon className="h-4 w-4 animate-spin" />
+              <ArrowUpCircle className="h-4 w-4 animate-spin" />
             </span>
           ) : (
             <></>
@@ -368,7 +376,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
           <div className="flex h-full flex-col items-center justify-center gap-3 text-center ">
             <p className="flex items-center justify-center text-xl font-bold">
               Checking account status
-              <ArrowLeft className="ml-2 h-4 w-4 animate-spin" />
+              <ArrowUpCircle className="ml-2 h-4 w-4 animate-spin" />
             </p>
           </div>
         </div>
@@ -443,7 +451,11 @@ function WCButton({
   const wciStore = useWCIStore();
   return (
     <IconButton
-      className="mb-2 me-2 rounded-lg bg-gray-800 px-5 py-2.5 text-sm font-medium text-white  hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
+      className={
+        text
+          ? "mb-2 me-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
+          : "mb-2 me-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
+      }
       disable={wcLoading}
       toolTips={toolTipsAddr(WalletType.walletConnect)}
       isSelected={selectedWallet === WalletType.walletConnect}
