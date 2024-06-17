@@ -24,7 +24,9 @@ export default function IconButton(props: IconButtonProps) {
       className={clsx(props.toolTips ? "tooltip w-full" : "", "flex-1")}
     >
       <button
-        className={clsx(`flex w-full items-center ${props.className}`)}
+        className={clsx(
+          `flex w-full items-center justify-center ${props.className}`,
+        )}
         onClick={props.onClick}
       >
         {props.imageUrl ? (
