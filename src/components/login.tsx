@@ -20,6 +20,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import { Button } from "../shadcn/ui/button";
+import { Loader2 } from "lucide-react";
 
 enum Tab {
   LOGIN,
@@ -260,9 +261,9 @@ function LoginForm({ tab }: IFrom) {
       )}
       <Button type="submit">
         {submitMutation.isLoading && (
-          <span className="loading loading-spinner"></span>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         )}
-        Login
+        LOGIN
         {/* <input  type="submit" /> */}
       </Button>
     </form>
