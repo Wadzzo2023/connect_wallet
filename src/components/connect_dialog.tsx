@@ -256,6 +256,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                       <WCButton
                         toolTipsAddr={toolTipsAddr}
                         selectedWallet={selectedWallet}
+                        text="Lobstr"
                       />
                     </div>
                   </div>
@@ -287,6 +288,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                 <WCButton
                   toolTipsAddr={toolTipsAddr}
                   selectedWallet={selectedWallet}
+                  text=""
                 />
               </div>
             </div>
@@ -420,9 +422,11 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
 function WCButton({
   toolTipsAddr,
   selectedWallet,
+  text,
 }: {
   toolTipsAddr: (walletType: WalletType) => string | undefined;
   selectedWallet: WalletType;
+  text?: string;
 }) {
   const [initializing, setInitializing] = useState(true);
   const [wcLoading, setWcLoading] = useState(false);
@@ -460,8 +464,14 @@ function WCButton({
 
         void runner();
       }}
-      imageUrl="/images/wallets/walletconnect.png"
-      text={initializing && wcLoading ? "Initializing..." : "QR CONNECT"}
+      imageUrl="/images/icons/labstr.png"
+      text={
+        initializing && wcLoading
+          ? "Initializing..."
+          : text
+            ? text
+            : "Lobstr Connect"
+      }
     />
   );
 }
