@@ -5,6 +5,7 @@ import { toast } from "react-hot-toast";
 import {
   ArrowPathIcon,
   DocumentDuplicateIcon,
+  EnvelopeIcon,
   SignalSlashIcon,
 } from "@heroicons/react/24/solid";
 
@@ -47,6 +48,10 @@ import Link from "next/link";
 import { router } from "@trpc/server";
 import { useRouter } from "next/router";
 import clsx from "clsx";
+import { User, onAuthStateChanged, sendEmailVerification } from "firebase/auth";
+import { auth } from "../lib/firebase/firebase-auth";
+import { useMutation } from "@tanstack/react-query";
+import { DialogTitle } from "@radix-ui/react-dialog";
 
 interface ConnectDialogProps {
   className: string;
@@ -61,9 +66,18 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
   const isIosFBuser = useFacebookiOSUserAgent();
   const session = useSession();
 
+  const currentUser = auth.currentUser;
+  console.log("Current", currentUser);
   async function disconnectWallet() {
     await signOut({ redirect: true, callbackUrl: "/" });
   }
+
+  useEff;
+
+  const verifyEmailMutation = useMutation({
+    mutationFn: (user) => sendEmailVerification(user),
+    onSuccess: () => toast.success("verification email send successfully"),
+  });
 
   async function checkAccountActivity(publicKey: string) {
     setAccountActivateLoading(true);
@@ -108,9 +122,11 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
     dialogModalState.setIsOpen(false);
   };
 
+  console.log("user", session.data?.user);
+
   return (
     <Dialog open={dialogModalState.isOpen} onOpenChange={handleClose}>
-      {session.status === "authenticated" ? (
+      {session.status === "authenticated" && session.data.user.emailVerified ? (
         session.data && isAccountActivate ? (
           <>
             <WalletLogin authUser={true} />
@@ -119,7 +135,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
           <>
             <DialogContent className=" items-between md:h-ful grid h-1/2 min-h-[600px]  grid-cols-1 justify-center md:h-fit ">
               <div className="flex flex-col items-center justify-between">
-                <div></div>
+                <DialogTitle></DialogTitle>
                 <div className="flex items-center justify-center">
                   <NotActivatedUser />
                 </div>
@@ -128,6 +144,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                 </div>
               </div>
             </DialogContent>
+            isAccountActivate
           </>
         )
       ) : (
@@ -198,6 +215,46 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
         <DialogContent className="flex h-1/2 min-h-[600px] min-w-fit grid-cols-1 items-start justify-center overflow-y-auto p-2 lg:grid  lg:grid-cols-3">
           <div className="h-full w-full bg-gray-100 p-5 dark:bg-gray-900 md:p-10  lg:col-span-2">
             <div className="max-w-md space-y-6">
+              {session?.data?.user && !session?.data?.user.emailVerified && (
+                <div className="max-w-md">
+                  <p className="text-xl font-bold">
+                    Email: {session?.data?.user.email}
+                  </p>
+                  <div>
+                    <p className="text-xl">
+                      To get wallet account, you have to verify your email.
+                    </p>
+                    {verifyEmailMutation.isSuccess && (
+                      <>
+                        <p className="text-xl">
+                          Check your email to verify account
+                        </p>
+                      </>
+                    )}
+                    <Button
+                      className=" mt-2 w-full bg-sky-500 text-white hover:bg-sky-700"
+                      disabled={verifyEmailMutation.isSuccess}
+                      onClick={() =>
+                        verifyEmailMutation.mutate(session?.data?.user || {})
+                      }
+                    >
+                      {verifyEmailMutation.isLoading && (
+                        <span className="loading loading-spinner"></span>
+                      )}
+                      <EnvelopeIcon className="mr-2 h-5 w-5" />
+                      Verify Email
+                    </Button>
+                  </div>
+
+                  <Button
+                    className="mt-2 w-full bg-violet-500 text-white hover:bg-violet-600 focus:outline-none focus:ring focus:ring-violet-300 active:bg-violet-700 "
+                    onClick={disconnectWallet}
+                  >
+                    <SignalSlashIcon className="mr-2 h-5 w-5" />
+                    Logout
+                  </Button>
+                </div>
+              )}
               {authUser ? (
                 <div className="flex items-center justify-center">
                   <div>
@@ -209,7 +266,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
               )}
               <div className="space-y-2 text-center">
                 <div className="p-2 text-3xl  font-bold text-black dark:text-white md:hidden">
-                  <Label>ACTION AUTH SYSTEM </Label>
+                  <DialogTitle>ACTION AUTH SYSTEM </DialogTitle>
                 </div>
 
                 <p className="text-gray-500 dark:text-gray-400">
