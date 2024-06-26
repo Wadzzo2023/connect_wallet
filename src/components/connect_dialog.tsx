@@ -52,6 +52,7 @@ import { User, onAuthStateChanged, sendEmailVerification } from "firebase/auth";
 import { auth } from "../lib/firebase/firebase-auth";
 import { useMutation } from "@tanstack/react-query";
 import { DialogTitle } from "@radix-ui/react-dialog";
+import { z } from "zod";
 
 interface ConnectDialogProps {
   className: string;
@@ -66,18 +67,9 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
   const isIosFBuser = useFacebookiOSUserAgent();
   const session = useSession();
 
-  const currentUser = auth.currentUser;
-  console.log("Current", currentUser);
   async function disconnectWallet() {
     await signOut({ redirect: true, callbackUrl: "/" });
   }
-
-  useEff;
-
-  const verifyEmailMutation = useMutation({
-    mutationFn: (user) => sendEmailVerification(user),
-    onSuccess: () => toast.success("verification email send successfully"),
-  });
 
   async function checkAccountActivity(publicKey: string) {
     setAccountActivateLoading(true);
@@ -110,6 +102,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
       );
     }
   }
+
   useEffect(() => {
     void checkStatus();
     const w = session.data?.user.walletType;
@@ -222,28 +215,9 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                   </p>
                   <div>
                     <p className="text-xl">
-                      To get wallet account, you have to verify your email.
+                      A verification email has been sent to your email address.
+                      Please verify your email address to continue.
                     </p>
-                    {verifyEmailMutation.isSuccess && (
-                      <>
-                        <p className="text-xl">
-                          Check your email to verify account
-                        </p>
-                      </>
-                    )}
-                    <Button
-                      className=" mt-2 w-full bg-sky-500 text-white hover:bg-sky-700"
-                      disabled={verifyEmailMutation.isSuccess}
-                      onClick={() =>
-                        verifyEmailMutation.mutate(session?.data?.user || {})
-                      }
-                    >
-                      {verifyEmailMutation.isLoading && (
-                        <span className="loading loading-spinner"></span>
-                      )}
-                      <EnvelopeIcon className="mr-2 h-5 w-5" />
-                      Verify Email
-                    </Button>
                   </div>
 
                   <Button
