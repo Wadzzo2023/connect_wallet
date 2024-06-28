@@ -13,3 +13,5 @@ export const STELLAR_URL =
 export const ACTION_STELLAR_ACCOUNT_URL = "https://accounts.action-tokens.com/";
 
 export const USER_ACOUNT_URL = ACTION_STELLAR_ACCOUNT_URL + "api/account";
+export const USER_ACOUNT_XDR_URL =
+  ACTION_STELLAR_ACCOUNT_URL + "api/account_xdr";
