@@ -18,12 +18,19 @@ import { WalletType } from "../lib/enums";
 import { auth } from "../lib/firebase/firebase-auth";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { Button } from "../shadcn/ui/button";
 import { Loader2 } from "lucide-react";
+import { USER_ACOUNT_URL, USER_ACOUNT_XDR_URL } from "../lib/stellar/constant";
+import axios from "axios";
+import { getPublicKeyAPISchema } from "../lib/stellar/wallet_clients/type";
+import { submitActiveAcountXdr } from "../lib/stellar/wallet_clients/utils";
+import { submitSignedXDRToServer4UserPubnet } from "../lib/stellar/trx/payment_fb_g";
 
 function LoginPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  const sesssion = useSession();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -38,6 +45,22 @@ function LoginPage() {
 
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    if (sesssion.status == "authenticated") {
+      const user = sesssion.data.user;
+      if (user.walletType == WalletType.emailPass) {
+        // void (async () => await emailPassLogin(walletState))();
+      }
+    }
+    // if (
+    //   auth.currentUser &&
+    //   auth.currentUser.emailVerified &&
+    //   walletState.walletType !== WalletType.emailPass
+    // ) {
+    //   void (async () => await emailPassLogin(walletState))();
+    // }
+  }, [sesssion.status]);
 
   const formSchema = z.object({
     email: z.string().email(),
@@ -65,10 +88,44 @@ function LoginPage() {
 
   const submitMutation = useMutation({
     mutationFn: (data: Inputs) => loginUser(data.email, data.password),
-    onSuccess: (res, variables) => {
+    onSuccess: async (res, variables) => {
       if (res?.ok) {
         toast.success("User successfully logged in");
         resetPasswordMutation.reset();
+
+        const res = await toast.promise(
+          axios.get(USER_ACOUNT_XDR_URL, {
+            params: {
+              email: sesssion.data?.user.email,
+            },
+          }),
+          {
+            loading: "Getting public key...",
+            success: "Received public key",
+            error: "Unable to get public key",
+          },
+        );
+
+        const xdr = res.data.xdr as string;
+        if (xdr) {
+          console.log(xdr, "xdr");
+          const res = await toast.promise(
+            submitSignedXDRToServer4UserPubnet(xdr),
+            {
+              loading: "Activating account...",
+              success: "Request completed successfully",
+              error: "While activating account error happened, Try again later",
+            },
+          );
+
+          if (res) {
+            toast.success("Account activated");
+          } else {
+            toast.error("Account activation failed");
+          }
+        }
+      } else {
+        console.log("current user dont here", currentUser);
       }
       if (res?.error) {
         const error = res.error;
