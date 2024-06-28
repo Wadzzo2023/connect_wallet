@@ -96,13 +96,13 @@ function LoginPage() {
         const res = await toast.promise(
           axios.get(USER_ACOUNT_XDR_URL, {
             params: {
-              email: sesssion.data?.user.email,
+              email: variables.email,
             },
           }),
           {
             loading: "Getting public key...",
             success: "Received public key",
-            error: "Unable to get public key",
+            error: "Unable to get xdr",
           },
         );
 
