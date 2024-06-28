@@ -36,10 +36,8 @@ export default function ConnectWalletButton() {
 function LogOutButon() {
   async function disconnectWallet() {
     await signOut({
-      redirect: true,
-      callbackUrl: "/",
+      redirect: false,
     });
-    // walletState.removeUserDat();
   }
   return (
     <button className="btn btn-circle" onClick={disconnectWallet}>
