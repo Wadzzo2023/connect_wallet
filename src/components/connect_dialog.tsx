@@ -137,7 +137,6 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                 </div>
               </div>
             </DialogContent>
-            isAccountActivate
           </>
         )
       ) : (
