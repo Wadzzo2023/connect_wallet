@@ -79,6 +79,30 @@ export async function clientsign(props: {
     if (props.walletType == WalletType.isAdmin) {
       return await submitSignedXDRToServer4UserTestnet(props.presignedxdr);
     }
+    else if(props.walletType == WalletType.emailPass){
+      return await submitSignedXDRToServer4UserTestnet(props.presignedxdr);
+    }
+    else if(props.walletType == WalletType.facebook){
+      return await submitSignedXDRToServer4UserTestnet(props.presignedxdr);
+    }
+    else if(props.walletType == WalletType.google){
+      return await submitSignedXDRToServer4UserTestnet(props.presignedxdr);
+    }
+    else if(props.walletType == WalletType.walletConnect){
+      return await walletConnectSignTransactionSubmitterWrapper(
+        props.presignedxdr,
+      );
+    }
+    else if(props.walletType == WalletType.xBull){
+      return await xbullXdrSingXdrAndSubmit(props.presignedxdr, props.pubkey);
+    }
+    else if(props.walletType == WalletType.rabet){
+      return await rabetXdrSingXdrAndSubmit(props.presignedxdr, props.pubkey);
+    }
+    else if(props.walletType == WalletType.frieghter){
+      return await freighterSignTrx(props.presignedxdr, props.pubkey);
+    }
+    else 
     return await albedoSignTrxInTestNet(props.presignedxdr, props.pubkey);
   }
 
