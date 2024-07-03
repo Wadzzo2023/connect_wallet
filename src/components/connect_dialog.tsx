@@ -214,8 +214,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                   </p>
                   <div>
                     <p className="text-xl">
-                      A verification email has been sent to your email address.
-                      Please verify your email address to continue.
+                      Please check your email inbox for the verification email.
                     </p>
                   </div>
 
