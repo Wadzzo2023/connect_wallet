@@ -215,7 +215,7 @@ function LoginPage() {
           disabled={submitMutation.isLoading}
           required
           {...register("email", { required: true })}
-          placeholder="Enter Email"
+          placeholder="Email"
           className="input input-bordered w-full "
         />
         {errors.email && (
@@ -230,7 +230,7 @@ function LoginPage() {
           required
           {...register("password")}
           type="password"
-          placeholder="Enter password"
+          placeholder="Password"
           className="input input-bordered w-full "
         />
         {(errors.password ?? forgetPassword) && (
