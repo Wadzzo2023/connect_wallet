@@ -115,7 +115,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
     dialogModalState.setIsOpen(false);
   };
 
-  console.log("user", session.data?.user);
+  // console.log("user", session.data?.user);
 
   return (
     <Dialog open={dialogModalState.isOpen} onOpenChange={handleClose}>
@@ -398,7 +398,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
   }
 
   function NotActivatedUser() {
-    console.log("isAccountActivate", isAccountActivate);
+    // console.log("isAccountActivate", isAccountActivate);
     if (isAccountActivateLoading)
       return (
         <div className=" h-full w-full  ">

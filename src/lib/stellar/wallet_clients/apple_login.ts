@@ -33,7 +33,7 @@ export async function appleLogin() {
 
       if (loginRes?.error) toast.error(loginRes.error);
 
-      console.log(loginRes);
+      // console.log(loginRes);
 
       // await auth.signOut();
       if (loginRes?.ok) {
