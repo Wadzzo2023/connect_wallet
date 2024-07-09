@@ -32,7 +32,7 @@ export async function googleLogin() {
 
       if (loginRes?.error) toast.error(loginRes.error);
 
-      console.log(loginRes);
+      // console.log(loginRes);
 
       // await auth.signOut();
       if (loginRes?.ok) {

@@ -48,7 +48,7 @@ export async function rabetLogin() {
     const xdrRes = await fetch("/api/xdr?pubkey=" + pubkey);
     if (xdrRes.ok) {
       const data = (await xdrRes.json()) as { xdr: string };
-      console.log(data);
+      // console.log(data);
       const toastId = toast.loading("Please wait");
       rabet
         .sign(data.xdr, network)
@@ -89,7 +89,7 @@ export async function rabetLogin() {
 }
 
 export async function rabetXdrSingXdr(xdr: string, pubKey: string) {
-  console.info(pubKey);
+  // console.info(pubKey);
 
   let rabet: any;
   if (!(window as any).rabet) {

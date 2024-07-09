@@ -118,7 +118,7 @@ export async function walletConnectLogin() {
 
             if (xdrRes.ok) {
               const data = (await xdrRes.json()) as { xdr: string };
-              console.log(data);
+              // console.log(data);
 
               const xdr = await walletConnectSignTransaction(
                 data.xdr,

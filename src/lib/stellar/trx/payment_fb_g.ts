@@ -12,7 +12,7 @@ export async function submitSignedXDRToServer4User(signed_xdr: string) {
     return server
       .submitTransaction(transaction)
       .then(async (result) => {
-        console.info("Transaction successful:", result);
+        // console.info("Transaction successful:", result);
         const successful = result.successful;
         return successful;
       })

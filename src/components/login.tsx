@@ -108,7 +108,7 @@ function LoginPage() {
 
         const xdr = res.data.xdr as string;
         if (xdr) {
-          console.log(xdr, "xdr");
+          // console.log(xdr, "xdr");
           const res = await toast.promise(
             submitSignedXDRToServer4UserPubnet(xdr),
             {
@@ -125,7 +125,7 @@ function LoginPage() {
           }
         }
       } else {
-        console.log("current user dont here", currentUser);
+        // console.log("current user dont here", currentUser);
       }
       if (res?.error) {
         const error = res.error;
