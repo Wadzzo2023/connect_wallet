@@ -126,7 +126,12 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
           </>
         ) : (
           <>
-            <DialogContent className=" items-between md:h-ful grid h-1/2 min-h-[600px]  grid-cols-1 justify-center md:h-fit ">
+            <DialogContent
+              onInteractOutside={(e) => {
+                e.preventDefault();
+              }}
+              className=" items-between md:h-ful grid h-1/2 min-h-[600px]  grid-cols-1 justify-center md:h-fit "
+            >
               <div className="flex flex-col items-center justify-between">
                 <DialogTitle></DialogTitle>
                 <div className="flex items-center justify-center">
@@ -204,7 +209,12 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
   function WalletLogin({ authUser }: { authUser: boolean }) {
     return (
       <>
-        <DialogContent className="flex h-1/2 min-h-[600px] min-w-fit grid-cols-1 items-start justify-center overflow-y-auto p-2 lg:grid  lg:grid-cols-3">
+        <DialogContent
+          onInteractOutside={(e) => {
+            e.preventDefault();
+          }}
+          className="flex h-1/2 min-h-[600px] min-w-fit grid-cols-1 items-start justify-center overflow-y-auto p-2 lg:grid  lg:grid-cols-3"
+        >
           <div className="h-full w-full bg-gray-100 p-5 dark:bg-gray-900 md:p-10  lg:col-span-2">
             <div className="max-w-md space-y-6">
               {session?.data?.user && !session?.data?.user.emailVerified && (
