@@ -309,7 +309,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                   </div>
                 </TabsContent>
               </Tabs>
-              {authUser && (
+              {/* {authUser && (
                 <div className="md:text-md text-sm  ">
                   <span>
                     <i className="font-semibold text-red-500">
@@ -317,7 +317,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                     </i>
                   </span>
                 </div>
-              )}
+              )} */}
             </div>
           </div>
 
@@ -360,7 +360,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                   />
                   <span className="font-bold">
                     WORKING WITH <br />
-                    LABSTR MOBILE APP
+                    LOBSTR MOBILE APP
                   </span>
                 </div>
               </Button>
