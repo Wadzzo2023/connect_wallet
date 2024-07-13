@@ -312,9 +312,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
               {authUser && (
                 <div className="md:text-md text-sm  ">
                   <span>
-                    <i className="font-semibold text-red-500">
-                      DON{"'"}T TAP OUTSIDE THIS WINDOW WHILE ANY PROCESS
-                    </i>
+                    <i className="font-semibold text-red-500"></i>
                   </span>
                 </div>
               )}
