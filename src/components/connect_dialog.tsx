@@ -1,22 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import IconButton from "./icon_button";
-import { Dialog, DialogContent } from "./ui/dialog";
 import { toast } from "react-hot-toast";
 import {
-  ArrowPathIcon,
   DocumentDuplicateIcon,
-  EnvelopeIcon,
   SignalSlashIcon,
 } from "@heroicons/react/24/solid";
 
-import {
-  ArrowLeft,
-  ArrowUpCircle,
-  BadgeCheck,
-  BadgeX,
-  QrCodeIcon,
-  RefreshCcw,
-} from "lucide-react";
+import { ArrowUpCircle, BadgeX, QrCodeIcon, RefreshCcw } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import CopyToClipboard from "react-copy-to-clipboard";
 
@@ -44,15 +34,10 @@ import { Button } from "../shadcn/ui/button";
 
 import { Badge } from "../shadcn/ui/badge";
 import Image from "next/image";
-import Link from "next/link";
-import { router } from "@trpc/server";
+
 import { useRouter } from "next/router";
-import clsx from "clsx";
-import { User, onAuthStateChanged, sendEmailVerification } from "firebase/auth";
-import { auth } from "../lib/firebase/firebase-auth";
-import { useMutation } from "@tanstack/react-query";
-import { DialogTitle } from "@radix-ui/react-dialog";
-import { z } from "zod";
+
+import { Dialog, DialogContent, DialogTitle } from "../shadcn/ui/dialog";
 
 interface ConnectDialogProps {
   className: string;
@@ -66,24 +51,26 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
   const [selectedWallet, setSelectedWallet] = useState(WalletType.none);
   const isIosFBuser = useFacebookiOSUserAgent();
   const session = useSession();
-
-  async function disconnectWallet() {
-    await signOut({ redirect: true, callbackUrl: "/" });
-  }
-
-  async function checkAccountActivity(publicKey: string) {
+  const [loading, setLoading] = useState(false);
+  const checkAccountActivity = useCallback(async (publicKey: string) => {
     setAccountActivateLoading(true);
     const isActive = await checkStellarAccountActivity(publicKey);
     setAccountActivate(isActive);
     setAccountActivateLoading(false);
-  }
+  }, []);
 
   const checkStatus = useCallback(async () => {
     const user = session.data?.user;
     if (user) {
+      setLoading(true);
       await checkAccountActivity(user.id);
+      setLoading(false);
     }
-  }, [session]);
+  }, [checkAccountActivity, session.data?.user]);
+
+  const disconnectWallet = useCallback(async () => {
+    await signOut({ redirect: true, callbackUrl: "/" });
+  }, []);
 
   function toolTipsAddr(wallateType: WalletType) {
     const user = session.data?.user;
@@ -93,8 +80,12 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
   function DisconnectButton() {
     if (session.status === "authenticated") {
       return (
-        <div className="flex items-center gap-2 ">
-          <Button variant="destructive" onClick={disconnectWallet}>
+        <div className="flex w-full items-center justify-center gap-2">
+          <Button
+            variant="destructive"
+            className="w-full"
+            onClick={disconnectWallet}
+          >
             <SignalSlashIcon className="aac-sbt mr-2 h-5 w-5 cursor-pointer " />
             Disconnect Wallet
           </Button>
@@ -107,15 +98,14 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
     void checkStatus();
     const w = session.data?.user.walletType;
     setSelectedWallet(w ?? WalletType.none);
-  }, [checkStatus, session]);
-
-  if (session.status === "loading") return <Loading />;
+  }, [checkStatus, session.data?.user.walletType]);
 
   const handleClose = () => {
     dialogModalState.setIsOpen(false);
   };
 
-  // console.log("user", session.data?.user);
+  if (session.status === "loading" || loading || isAccountActivateLoading)
+    return <Loading />;
 
   return (
     <Dialog open={dialogModalState.isOpen} onOpenChange={handleClose}>
@@ -237,14 +227,12 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                   </Button>
                 </div>
               )}
-              {authUser ? (
+              {authUser && (
                 <div className="flex items-center justify-center">
                   <div>
                     <AuthenticatedUser />
                   </div>
                 </div>
-              ) : (
-                <></>
               )}
               <div className="space-y-2 text-center">
                 <div className="p-2 text-3xl  font-bold text-black dark:text-white md:hidden">
@@ -309,18 +297,16 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                   </div>
                 </TabsContent>
               </Tabs>
-              {/* {authUser && (
-                <div className="md:text-md text-sm  ">
-                  <span>
-                    <i className="font-semibold text-red-500"></i>
-                  </span>
+              {authUser && (
+                <div className=" flex  items-center justify-center ">
+                  <DisconnectButton />
                 </div>
-              )} */}
+              )}
             </div>
           </div>
 
           <div className="hidden h-full flex-col items-center justify-between lg:flex">
-            <div className="flex w-full flex-col items-center justify-center p-6 font-bold text-black dark:text-white">
+            <div className="flex w-full flex-col items-center justify-center py-10 font-bold text-black dark:text-white">
               <Label>ACTION AUTH SYSTEM</Label>
             </div>
 
