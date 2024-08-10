@@ -41,9 +41,6 @@ export async function freighterLogin() {
     });
     if (xdrRes.ok) {
       const data = (await xdrRes.json()) as { xdr: string };
-      // console.log(data);
-      const toastId = toast.loading("Please wait");
-
       const signedXDR = await signTransaction(data.xdr, {
         network,
         accountToSign: pubkey,
