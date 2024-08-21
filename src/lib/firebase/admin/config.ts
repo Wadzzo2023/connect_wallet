@@ -1,6 +1,6 @@
 import admin from "firebase-admin";
 
-import service_account from "./acc.json";
+import { firebaseConfig } from "../firebase-auth";
 
 interface FirebaseAdminAppParams {
   projectId: string;
@@ -35,10 +35,10 @@ export function createFirebaseAdminApp(params: FirebaseAdminAppParams) {
 
 export function initAdmin() {
   const params = {
-    projectId: service_account.project_id,
-    clientEmail: service_account.client_email,
-    storageBucket: "vongcongj",
-    privateKey: service_account.private_key,
+    projectId: firebaseConfig.projectId,
+    storageBucket: firebaseConfig.storageBucket,
+    privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY!,
+    clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL!,
   };
 
   return createFirebaseAdminApp(params);
