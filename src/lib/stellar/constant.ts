@@ -16,7 +16,8 @@ export const USER_ACCOUNT_XDR_URL =
   ACTION_STELLAR_ACCOUNT_URL + "api/account_xdr";
 
 export const TrxBaseFee = "1000";
-export const PLATFORM_FEE = env.NEXT_PUBLIC_STELLAR_PUBNET ? "3000" : "2";
+export const TrxBaseFeeInPlatformAsset = "1400";
+export const PLATFORM_FEE = "3000"; // in platform asset
 
 export const PLATFORM_ASSET = new Asset(
   env.NEXT_PUBLIC_ASSET_CODE,
