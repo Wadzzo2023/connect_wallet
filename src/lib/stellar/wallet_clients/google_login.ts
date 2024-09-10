@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { ProviderNextLogin } from "~/utils/next-login";
 import { WalletType } from "../../../lib/enums";
 import { auth } from "../../../lib/firebase/firebase-auth";
-import { USER_ACOUNT_URL } from "../constant";
+import { USER_ACCOUNT_URL } from "../constant";
 import { getPublicKeyAPISchema } from "./type";
 import { submitActiveAcountXdr } from "./utils";
 
@@ -38,7 +38,7 @@ export async function googleLogin() {
       if (loginRes?.ok) {
         if (loginRes?.ok) toast.success("Login Successfull");
         const res = await toast.promise(
-          axios.get(USER_ACOUNT_URL, {
+          axios.get(USER_ACCOUNT_URL, {
             params: {
               uid: user.uid,
               email,

@@ -5,7 +5,7 @@ import { auth } from "../../../lib/firebase/firebase-auth";
 import { type ConnectWalletStateModel } from "../../../state/connect_wallet_state";
 import { addrShort } from "../../../lib/utils";
 import { submitActiveAcountXdr } from "./utils";
-import { USER_ACOUNT_URL } from "../constant";
+import { USER_ACCOUNT_URL } from "../constant";
 import NextLogin from "./next-login";
 import { getPublicKeyAPISchema } from "./type";
 
@@ -17,7 +17,7 @@ export async function emailPassLogin(walletState: ConnectWalletStateModel) {
 
     try {
       const res = await toast.promise(
-        axios.get(USER_ACOUNT_URL, {
+        axios.get(USER_ACCOUNT_URL, {
           params: {
             uid,
             email,

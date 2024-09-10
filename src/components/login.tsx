@@ -4,28 +4,25 @@ import {
   User,
   createUserWithEmailAndPassword,
   onAuthStateChanged,
-  sendEmailVerification,
   sendPasswordResetEmail,
 } from "firebase/auth";
 import { useEffect, useState } from "react";
 
 import { useMutation } from "@tanstack/react-query";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import axios from "axios";
+import { Loader2 } from "lucide-react";
+import { signIn, useSession } from "next-auth/react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
+import { z } from "zod";
 import { AuthCredentialType } from "~/types/auth";
 import { WalletType } from "../lib/enums";
 import { auth } from "../lib/firebase/firebase-auth";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn, useSession } from "next-auth/react";
-import { Button } from "../shadcn/ui/button";
-import { Loader2 } from "lucide-react";
-import { USER_ACOUNT_URL, USER_ACOUNT_XDR_URL } from "../lib/stellar/constant";
-import axios from "axios";
-import { getPublicKeyAPISchema } from "../lib/stellar/wallet_clients/type";
-import { submitActiveAcountXdr } from "../lib/stellar/wallet_clients/utils";
+import { USER_ACCOUNT_XDR_URL } from "../lib/stellar/constant";
 import { submitSignedXDRToServer4UserPubnet } from "../lib/stellar/trx/payment_fb_g";
+import { Button } from "../shadcn/ui/button";
 
 function LoginPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -94,7 +91,7 @@ function LoginPage() {
         resetPasswordMutation.reset();
 
         const res = await toast.promise(
-          axios.get(USER_ACOUNT_XDR_URL, {
+          axios.get(USER_ACCOUNT_XDR_URL, {
             params: {
               email: variables.email,
             },
