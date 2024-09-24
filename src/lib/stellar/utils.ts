@@ -17,7 +17,7 @@ import {
   albedoSignTrxInTestNet,
 } from "./wallet_clients/albedo_login";
 import { freighterSignTrx } from "./wallet_clients/freighter_login";
-import { xbullXdrSingXdrAndSubmit } from "./wallet_clients/xbull_login";
+// import { xbullXdrSingXdrAndSubmit } from "./wallet_clients/xbull_login";
 import { rabetXdrSingXdrAndSubmit } from "./wallet_clients/rabe_login";
 import {
   walletConnectSignTransaction,
@@ -79,31 +79,31 @@ export async function clientsign(props: {
     if (props.walletType == WalletType.isAdmin) {
       return await submitSignedXDRToServer4UserTestnet(props.presignedxdr);
     }
-    else if(props.walletType == WalletType.emailPass){
+    else if (props.walletType == WalletType.emailPass) {
       return await submitSignedXDRToServer4UserTestnet(props.presignedxdr);
     }
-    else if(props.walletType == WalletType.facebook){
+    else if (props.walletType == WalletType.facebook) {
       return await submitSignedXDRToServer4UserTestnet(props.presignedxdr);
     }
-    else if(props.walletType == WalletType.google){
+    else if (props.walletType == WalletType.google) {
       return await submitSignedXDRToServer4UserTestnet(props.presignedxdr);
     }
-    else if(props.walletType == WalletType.walletConnect){
+    else if (props.walletType == WalletType.walletConnect) {
       return await walletConnectSignTransactionSubmitterWrapper(
         props.presignedxdr,
       );
     }
-    else if(props.walletType == WalletType.xBull){
-      return await xbullXdrSingXdrAndSubmit(props.presignedxdr, props.pubkey);
-    }
-    else if(props.walletType == WalletType.rabet){
+    // else if(props.walletType == WalletType.xBull){
+    //   return await xbullXdrSingXdrAndSubmit(props.presignedxdr, props.pubkey);
+    // }
+    else if (props.walletType == WalletType.rabet) {
       return await rabetXdrSingXdrAndSubmit(props.presignedxdr, props.pubkey);
     }
-    else if(props.walletType == WalletType.frieghter){
+    else if (props.walletType == WalletType.frieghter) {
       return await freighterSignTrx(props.presignedxdr, props.pubkey);
     }
-    else 
-    return await albedoSignTrxInTestNet(props.presignedxdr, props.pubkey);
+    else
+      return await albedoSignTrxInTestNet(props.presignedxdr, props.pubkey);
   }
 
   switch (props.walletType) {
@@ -111,8 +111,8 @@ export async function clientsign(props: {
       return await albedoSignTrx(props.presignedxdr, props.pubkey);
     case WalletType.frieghter:
       return await freighterSignTrx(props.presignedxdr, props.pubkey);
-    case WalletType.xBull:
-      return await xbullXdrSingXdrAndSubmit(props.presignedxdr, props.pubkey);
+    // case WalletType.xBull:
+    //   return await xbullXdrSingXdrAndSubmit(props.presignedxdr, props.pubkey);
     case WalletType.rabet:
       return await rabetXdrSingXdrAndSubmit(props.presignedxdr, props.pubkey);
     case WalletType.walletConnect:
