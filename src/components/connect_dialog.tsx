@@ -69,7 +69,8 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
   }, [checkAccountActivity, session.data?.user]);
 
   const disconnectWallet = useCallback(async () => {
-    await signOut({ redirect: true, callbackUrl: "/" });
+    await signOut({ redirect: false, callbackUrl: "/" });
+    router.reload();
   }, []);
 
   function toolTipsAddr(wallateType: WalletType) {
