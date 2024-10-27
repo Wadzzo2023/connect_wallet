@@ -69,7 +69,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
   }, [checkAccountActivity, session.data?.user]);
 
   const disconnectWallet = useCallback(async () => {
-    await signOut({ redirect: false, callbackUrl: "/" });
+    await signOut({ redirect: false });
     router.reload();
   }, []);
 
