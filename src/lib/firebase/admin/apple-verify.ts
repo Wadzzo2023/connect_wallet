@@ -1,3 +1,4 @@
+/* eslint-disable */
 import jwksClient from "jwks-rsa";
 // @ts-ignore - This package is not typed
 import jwt from "jsonwebtoken";
