@@ -1,6 +1,5 @@
 /* eslint-disable */
 import jwksClient from "jwks-rsa";
-// @ts-ignore - This package is not typed
 import jwt from "jsonwebtoken";
 
 const client = jwksClient({
@@ -10,7 +9,7 @@ const client = jwksClient({
 export async function verifyAppleToken(identityToken: string) {
   // Get Apple's public key
   const decodedToken = jwt.decode(identityToken, { complete: true });
-  const kid = decodedToken.header.kid;
+  const kid = decodedToken?.header.kid;
   const key = await client.getSigningKey(kid);
   const publicKey = key.getPublicKey();
 
