@@ -3,7 +3,7 @@ import { OAuthProvider, signInWithPopup } from "firebase/auth";
 import axios from "axios";
 import toast from "react-hot-toast";
 
-import { ProviderNextLogin } from "~/utils/next-login";
+import { ProviderAppleLogin, ProviderNextLogin } from "~/utils/next-login";
 import { WalletType } from "../../../lib/enums";
 import { auth } from "../../../lib/firebase/firebase-auth";
 import { USER_ACCOUNT_URL } from "../constant";
@@ -17,14 +17,15 @@ export async function appleLogin() {
 
   try {
     const user = (await signInWithPopup(auth, provider)).user;
-    const { email } = user.providerData[0]!;
+    const { email, uid } = user.providerData[0]!;
     // const email = user.email;
     if (email) {
       const idToken = await user.getIdToken();
 
       const loginRes = await toast.promise(
-        ProviderNextLogin({
+        ProviderAppleLogin({
           email,
+          appleUid: uid,
           token: idToken,
           walletType: WalletType.apple,
         }),
