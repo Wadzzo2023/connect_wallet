@@ -17,7 +17,8 @@ export async function appleLogin() {
 
   try {
     const user = (await signInWithPopup(auth, provider)).user;
-    const { email, uid } = user.providerData[0]!;
+    const email = user.email;
+    // const { email, uid } = user.providerData[0]!;
     // const email = user.email;
     if (email) {
       const idToken = await user.getIdToken();
@@ -25,7 +26,6 @@ export async function appleLogin() {
       const loginRes = await toast.promise(
         ProviderAppleLogin({
           email,
-          appleUid: uid,
           token: idToken,
           walletType: WalletType.apple,
         }),
@@ -58,7 +58,7 @@ export async function appleLogin() {
         await submitActiveAcountXdr(extra);
       }
     } else {
-      toast.error("Email dont exist");
+      toast.error("Please share you email with us. without we can't proceed");
     }
 
     // await NextLogin(publicKey, publicKey);

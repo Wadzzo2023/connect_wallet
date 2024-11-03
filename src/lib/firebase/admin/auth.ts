@@ -1,4 +1,4 @@
-import { FirebaseError } from "firebase/app";
+/* eslint-disable */
 import { verifyAppleToken } from "./apple-verify";
 import { initAdmin } from "./config";
 
@@ -19,9 +19,8 @@ export async function verifyIdToken(token: string) {
   return decodedToken;
 }
 
-export async function appleTokenToUserProvideUid(appleToken: string) {
+export async function appleTokenToUser(appleToken: string, email: string) {
   const appleUser = (await verifyAppleToken(appleToken)) as {
-    email: string;
     sub: string;
     name: string;
   };
@@ -31,30 +30,25 @@ export async function appleTokenToUserProvideUid(appleToken: string) {
 
   try {
     // Try to get existing user first
-    const firebaseUser = await auth.getUserByProviderUid(
-      "apple.com",
-      appleUser.sub,
-    );
+    const firebaseUser = await auth.getUserByEmail(email);
 
-    return appleUser.sub;
-  } catch (error) {
-    if (error instanceof FirebaseError) {
-      if (error.code === "auth/user-not-found") {
-        // Create new Firebase user if they don't exist
-        const newUser = await auth.createUser({
-          email: appleUser.email,
-          displayName: appleUser.name,
-        });
+    return firebaseUser;
+  } catch (error: any) {
+    if (error.code === "auth/user-not-found") {
+      // Create new Firebase user if they don't exist
+      const newUser = await auth.createUser({
+        email: email,
+        displayName: appleUser.name,
+      });
 
-        const user = await admin.auth().updateUser(newUser.uid, {
-          providerToLink: {
-            uid: appleUser.sub,
-            providerId: "apple.com",
-            email: appleUser.email,
-          },
-        });
-        return appleUser.sub;
-      }
+      const user = await admin.auth().updateUser(newUser.uid, {
+        providerToLink: {
+          uid: appleUser.sub,
+          providerId: "apple.com",
+          email: email,
+        },
+      });
+      return user;
     }
     console.log(error);
     throw error;
