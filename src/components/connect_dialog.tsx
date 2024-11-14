@@ -38,12 +38,14 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 
 import { Dialog, DialogContent, DialogTitle } from "../shadcn/ui/dialog";
+import SignUP from "./sign_up";
 
 interface ConnectDialogProps {
   className: string;
 }
 
 export default function ConnectDialog({ className }: ConnectDialogProps) {
+  const [signUP, setSignUP] = useState(false);
   const [isAccountActivate, setAccountActivate] = useState(false);
   const [isAccountActivateLoading, setAccountActivateLoading] = useState(false);
   const router = useRouter();
@@ -256,7 +258,17 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                 </TabsList>
                 <TabsContent value="action">
                   <div className="w-full space-y-4">
-                    <LoginPage />
+                    {signUP ? <SignUP /> : <LoginPage />}
+                    {!session?.data?.user && (
+                      <Button
+                        variant="link"
+                        className="w-full"
+                        onClick={() => setSignUP(!signUP)}
+                      >
+                        {signUP ? "Login" : "Sign up"}
+                      </Button>
+                    )}
+
                     <AllButtons />
                   </div>
                 </TabsContent>
