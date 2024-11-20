@@ -5,7 +5,7 @@ import { signOut, useSession } from "next-auth/react";
 import { addrShort } from "../lib/utils";
 import { useDialogStore } from "../state/connect_wallet_dialog";
 
-export default function ConnectWalletButton() {
+export default function ConnectWalletButton({ text }: { text?: string }) {
   const session = useSession();
 
   const setDialog = useDialogStore();
@@ -24,7 +24,7 @@ export default function ConnectWalletButton() {
           <span className="text-base-content">
             {session.status == "authenticated"
               ? addrShort(session.data.user.id)
-              : "Connect Wallet"}
+              : "Login/Signup"}
           </span>
         </div>
       </button>
