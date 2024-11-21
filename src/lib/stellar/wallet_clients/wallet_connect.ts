@@ -141,7 +141,9 @@ export async function walletConnectLogin() {
                   toast.error(loginRes.error);
                 }
               } else {
-                toast.error("XDR signing failed");
+                toast.error(
+                  "Internal error, please try again later or contact an admin for help",
+                );
               }
 
               // await NextLogin(pubkey, pubkey);

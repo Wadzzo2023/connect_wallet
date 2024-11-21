@@ -69,7 +69,9 @@ export async function rabetLogin() {
               toast.error(loginRes.error);
             }
           } else {
-            toast.error("XDR signing failed");
+            toast.error(
+              "Internal error, please try again later or contact an admin for help",
+            );
           }
         })
         .catch((error: any) => {
