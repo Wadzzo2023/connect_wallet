@@ -1,9 +1,13 @@
 import { Asset, Networks } from "@stellar/stellar-sdk";
 import { env } from "~/env";
 
-export const networkPassphrase = Networks.PUBLIC;
+export const networkPassphrase = env.NEXT_PUBLIC_STELLAR_PUBNET
+  ? Networks.PUBLIC
+  : Networks.TESTNET;
 
-export const STELLAR_URL = "https://horizon.stellar.org";
+export const STELLAR_URL = env.NEXT_PUBLIC_STELLAR_PUBNET
+  ? "https://horizon.stellar.org"
+  : "https://horizon-testnet.stellar.org";
 
 export const ACTION_STELLAR_ACCOUNT_URL = "https://accounts.action-tokens.com/";
 
@@ -18,7 +22,7 @@ export const PLATFORM_ASSET = new Asset(
   env.NEXT_PUBLIC_ASSET_ISSUER,
 );
 
-export const TrxBaseFee = env.NEXT_PUBLIC_STAGE === "prod" ? "1000" : "100"; // 100
+export const TrxBaseFee = env.NEXT_PUBLIC_STAGE === "prod" ? "1000" : "100";
 export const TrxBaseFeeInPlatformAsset =
   env.NEXT_PUBLIC_STAGE === "prod"
     ? PLATFORM_ASSET.code.toLowerCase() === "wadzzo"
