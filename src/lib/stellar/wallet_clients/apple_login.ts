@@ -38,7 +38,7 @@ export async function appleLogin() {
 
       // await auth.signOut();
       if (loginRes?.ok) {
-        if (loginRes?.ok) toast.success("Login Successfull");
+        if (loginRes?.ok) toast.success("Login Successfully");
         const res = await toast.promise(
           axios.get(USER_ACCOUNT_URL, {
             params: {
