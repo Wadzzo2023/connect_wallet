@@ -37,7 +37,7 @@ export const recursiveTransactionSubmitter = async (
 ): Promise<Horizon.HorizonApi.SubmitTransactionResponse> => {
   let result: Horizon.HorizonApi.SubmitTransactionResponse;
   try {
-    const server = new Horizon.Server("https://horizon.stellar.org");
+    const server = new Horizon.Server(STELLAR_URL);
 
     result = await server.submitTransaction(transaction);
     return result;
@@ -61,7 +61,6 @@ export async function submitSignedXDRToServer(signed_xdr: string) {
   const envelop = xdr.TransactionEnvelope.fromXDR(signed_xdr, "base64");
   const transaction = new Transaction(envelop, networkPassphrase);
   const res = await recursiveTransactionSubmitter(transaction);
-
   return res;
 }
 
