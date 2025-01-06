@@ -426,7 +426,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
               Account is not activated!
               <BadgeX className="ml-2 h-4 w-4" color="red" />
             </p>
-            <p>
+            {/* <p>
               We generated this address for you. Please fund it to use it in
               future. Keep in mind that{" "}
               <b>
@@ -435,7 +435,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
               </b>
               . Stellar locks 2 XLM as reserve. Every asset you claim/hold will
               consume 0.5 XLM each.
-            </p>
+            </p> */}
             <div className="flex flex-col gap-2 sm:flex-row">
               <CopyToClipboard
                 text={session.data.user.id}
