@@ -139,6 +139,9 @@ function SignUP() {
     try {
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       const user = cred.user;
+      if (!user.emailVerified) {
+        emailVerifiedMutation.mutate({ user: user });
+      }
       console.log(user);
       return user;
     } catch (error: unknown) {
