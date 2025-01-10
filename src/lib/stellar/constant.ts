@@ -37,3 +37,5 @@ export const PLATFORM_FEE =
     : "1";
 
 export const STROOP = "0.0000001";
+
+export const TRUST_XLM = 0.6;
