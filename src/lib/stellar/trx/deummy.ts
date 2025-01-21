@@ -1,26 +1,25 @@
 import {
-  Keypair,
-  Operation,
-  TransactionBuilder,
   Asset,
   Horizon,
+  Keypair,
+  Networks,
+  Operation,
   Transaction,
+  TransactionBuilder,
 } from "@stellar/stellar-sdk";
-import { STELLAR_URL, networkPassphrase } from "../constant";
 import { MOTHER_SECRET } from "~/lib/stellar/marketplace/SECRET";
+import { networkPassphrase, STELLAR_URL } from "../constant";
 
 export async function GetDummyXDR({ pubkey }: { pubkey: string }) {
-  const server = new Horizon.Server(STELLAR_URL);
+  const server = new Horizon.Server("https://horizon.stellar.org");
 
   const serverKeypair = Keypair.fromSecret(MOTHER_SECRET);
 
-  const transactionInializer = await server.loadAccount(
-    serverKeypair.publicKey(),
-  );
+  const transactionInializer = await server.loadAccount(pubkey);
 
   const Tx1 = new TransactionBuilder(transactionInializer, {
     fee: "200",
-    networkPassphrase,
+    networkPassphrase: Networks.PUBLIC,
   })
 
     // sending platform fee.
@@ -41,7 +40,7 @@ export async function GetDummyXDR({ pubkey }: { pubkey: string }) {
   return Tx1.toXDR();
 }
 
-export async function verifyXDRsSignature({
+export async function verifyXDRSignature({
   xdr,
   publicKey,
 }: {
@@ -50,7 +49,7 @@ export async function verifyXDRsSignature({
 }) {
   try {
     // Load the transaction from the XDR
-    const transaction = new Transaction(xdr, networkPassphrase);
+    const transaction = new Transaction(xdr, Networks.PUBLIC);
 
     // Convert the public key to a Keypair
     const keypair = Keypair.fromPublicKey(publicKey);

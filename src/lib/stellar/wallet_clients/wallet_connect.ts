@@ -1,11 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
-/* eslint-disable @typescript-eslint/no-namespace */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable */
 import SignClient from "@walletconnect/sign-client";
 import { getSdkError } from "@walletconnect/utils";
 import { ConfigCtrl, ModalCtrl } from "@web3modal/core";
@@ -15,7 +8,8 @@ import toast from "react-hot-toast";
 import { WalleteNextLogin } from "~/utils/next-login";
 import { WalletType } from "../../../lib/enums";
 import { addrShort, checkPubkey } from "../../../lib/utils";
-import NextLogin from "./next-login";
+import { networkPassphrase } from "../constant";
+import { env } from "~/env";
 
 type Method = "stellar_signXDR" | "stellar_signAndSubmitXDR";
 
@@ -27,13 +21,15 @@ const STELLAR_METHODS = {
 // # WallectConnect project Id
 const WALLET_CONNECT_ID = "f1aeccdd62aff60ec7f578ec3661321f";
 
+const stellarNetworkChains = ["stellar:pubnet", "stellar:testnet"];
+const currentChain = "stellar:pubnet";
 // # Site info
 
 let signClient: SignClient | undefined = undefined;
 const namespaces = {
   stellar: {
     methods: Object.values(STELLAR_METHODS),
-    chains: ["stellar:pubnet"],
+    chains: stellarNetworkChains,
     events: [],
   },
 };
@@ -91,19 +87,20 @@ export async function walletConnectLogin() {
       });
 
       try {
-        let r: any | undefined;
+        let session: any | undefined;
 
         toast("WalletConnect session timeout 3 minute");
         await Promise.race([
           timeout(180000, "timeout wc"),
           (async () => {
-            r = await approval();
+            session = await approval();
           })(),
         ]);
-        if (r) {
-          await logoutWalletConnect(r.topic);
+
+        if (session) {
+          // await logoutWalletConnect(session.topic);
           const [_chain, _reference, pubkey] =
-            r.namespaces.stellar.accounts[0].split(":");
+            session.namespaces.stellar.accounts[0].split(":");
           if (checkPubkey(pubkey)) {
             toast.error(
               "Login failed. Please try to login again after refreshing the page.",
@@ -118,12 +115,22 @@ export async function walletConnectLogin() {
 
             if (xdrRes.ok) {
               const data = (await xdrRes.json()) as { xdr: string };
-              // console.log(data);
+              console.log(data, "data");
 
-              const xdr = await walletConnectSignTransaction(
-                data.xdr,
-                "stellar_signXDR",
-              );
+              const result = await signClient.request({
+                topic: session.topic,
+                chainId: currentChain,
+                request: {
+                  method: "stellar_signXDR",
+                  params: {
+                    xdr: data.xdr,
+                  },
+                },
+              });
+
+              ModalCtrl.close();
+
+              const xdr = (result as any).signedXDR;
 
               if (xdr) {
                 const loginRes = await WalleteNextLogin({
@@ -145,22 +152,18 @@ export async function walletConnectLogin() {
                   "Internal error, please try again later or contact an admin for help",
                 );
               }
-
-              // await NextLogin(pubkey, pubkey);
-              // walletState.setUserData(pubkey, true, WalletType.rabet);
             }
           } catch (e) {
             toast.dismiss(toastId);
             console.error(e);
+          } finally {
+            toast.dismiss(toastId);
           }
-
-          await NextLogin(pubkey, pubkey);
-          // walletState.setUserData(pubkey, true, WalletType.walletConnect);
-          toast.success("Public Key : " + addrShort(pubkey, 10));
         }
       } catch (e) {
         toast.error("Reject");
       }
+
       ModalCtrl.close();
       toast("WalletConnect session ended");
     }
@@ -174,7 +177,7 @@ export async function walletConnectSignTransaction(
   const AnotherWeb3Modal = new Web3Modal({
     walletConnectVersion: 2,
     projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_ID ?? WALLET_CONNECT_ID,
-    standaloneChains: ["stellar:pubnet"],
+    standaloneChains: stellarNetworkChains,
   });
 
   await configureSignClient();
@@ -184,7 +187,7 @@ export async function walletConnectSignTransaction(
         requiredNamespaces: {
           stellar: {
             methods: Object.values(STELLAR_METHODS),
-            chains: ["stellar:pubnet"],
+            chains: stellarNetworkChains,
             events: [],
           },
         },
@@ -195,7 +198,7 @@ export async function walletConnectSignTransaction(
         const session = await approval();
         const result = await signClient.request({
           topic: session.topic,
-          chainId: "stellar:pubnet",
+          chainId: currentChain,
           request: {
             method: method, //"stellar_signXDR",
             params: {
