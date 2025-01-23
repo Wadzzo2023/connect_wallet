@@ -24,6 +24,7 @@ import { auth } from "../lib/firebase/firebase-auth";
 import { USER_ACCOUNT_XDR_URL } from "../lib/stellar/constant";
 import { submitSignedXDRToServer4UserPubnet } from "../lib/stellar/trx/payment_fb_g";
 import { Button } from "../shadcn/ui/button";
+import { handleFireBaseAuthError } from "./firebase-error";
 
 function LoginPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -123,17 +124,18 @@ function LoginPage() {
       }
       if (res?.error) {
         const error = res.error;
-        if (error.includes(AuthErrorCodes.USER_DELETED)) {
-          alert("User not found");
-          // registerUser(variables.email, variables.password);
-        } else if (error.includes(AuthErrorCodes.INVALID_PASSWORD)) {
-          toast.error("Invalid Credential");
-          setForgetPass(true);
-        } else if (error.includes("Email is not verified")) {
-          toast.error("Email is not verified, verification email sent");
-          setVerifyEmail(true);
-          // emailVerifiedMutation.mutate({ user: auth.currentUser });
-        } else {
+        if (error) {
+          console.log(error);
+          handleFireBaseAuthError({
+            error,
+            email: variables.email,
+            password: variables.password,
+            setVerifyEmail,
+            setForgetPass,
+          });
+
+        }
+        else {
           toast.error(error);
         }
       }
@@ -159,10 +161,14 @@ function LoginPage() {
   const resetPasswordMutation = useMutation({
     mutationFn: ({ email }: { email: string }) => resetPassword(email),
     onSuccess(data, variables, context) {
-      toast.success("email sent");
+      toast.success("A verification email has been sent to your email.");
     },
     onError(error: AuthError, variables, context) {
       const errorCode = error.code;
+      handleFireBaseAuthError({
+        error: errorCode,
+        setForgetPass,
+      });
       const errorMessage = error.message;
       toast.error(errorMessage);
       console.log(error);
