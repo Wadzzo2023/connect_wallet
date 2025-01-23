@@ -1,9 +1,114 @@
-
-
-import { AuthErrorCodes, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
+import { AuthErrorCodes } from "firebase/auth";
 import toast from "react-hot-toast";
-import { auth } from "../lib/firebase/firebase-auth";
-import { set } from "date-fns";
+
+const AuthErrorMessages = {
+    ARGUMENT_ERROR: "An invalid argument was provided. Please check your input and try again. Error Code: WZAR002",
+    CAPTCHA_CHECK_FAILED: "The CAPTCHA verification failed. Please try again. Error Code: WZAR005",
+    CODE_EXPIRED: "The verification code has expired. Please request a new one. Error Code: WZAR006",
+    CREDENTIAL_ALREADY_IN_USE: "This credential is already associated with another account. Error Code: WZAR009",
+    CREDENTIAL_MISMATCH: "The provided credentials do not match. Please check and try again. Error Code: WZAR010",
+    CREDENTIAL_TOO_OLD_LOGIN_AGAIN: "Your session has expired. Please log in again. Error Code: WZAR011",
+    EMAIL_CHANGE_NEEDS_VERIFICATION: "Your email change requires verification. Please check your inbox. Error Code: WZAR014",
+    EMAIL_EXISTS: "This email is already in use. Please use a different email. Error Code: WZAR015",
+    EXPIRED_OOB_CODE: "The out-of-band code has expired. Please request a new one. Error Code: WZAR017",
+    EXPIRED_POPUP_REQUEST: "The popup request was cancelled or expired. Please try again. Error Code: WZAR018",
+    INVALID_CODE: "The verification code is invalid. Please check and try again. Error Code: WZAR025",
+    INVALID_EMAIL: "The email address is invalid. Please check and try again. Error Code: WZAR030",
+    INVALID_LOGIN_CREDENTIALS: "The login credentials are invalid. Please check and try again. Error Code: WZAR033",
+    INVALID_PASSWORD: "The password is incorrect. Please check and try again. Error Code: WZAR040",
+    INVALID_PHONE_NUMBER: "The phone number is invalid. Please check and try again. Error Code: WZAR042",
+    MISSING_PHONE_NUMBER: "Please enter your phone number to continue. Error Code: WZAR060",
+    NEED_CONFIRMATION: "This account already exists with different credentials. Please confirm your login method. Error Code: WZAR062",
+    NETWORK_REQUEST_FAILED: "The network request failed. Please check your connection and try again. Error Code: WZAR063",
+    NULL_USER: "No user is currently signed in. Error Code: WZAR064",
+    POPUP_BLOCKED: "The popup was blocked. Please allow popups and try again. Error Code: WZAR069",
+    POPUP_CLOSED_BY_USER: "The popup was closed by the user. Error Code: WZAR070",
+    PROVIDER_ALREADY_LINKED: "This provider is already linked to your account. Error Code: WZAR071",
+    QUOTA_EXCEEDED: "The quota for this operation has been exceeded. Error Code: WZAR072",
+    REDIRECT_CANCELLED_BY_USER: "The redirect was cancelled by the user. Error Code: WZAR073",
+    TIMEOUT: "The operation timed out. Please try again. Error Code: WZAR079",
+    TOKEN_EXPIRED: "Your session has expired. Please log in again. Error Code: WZAR080",
+    TOO_MANY_ATTEMPTS_TRY_LATER: "Too many attempts. Please try again later. Error Code: WZAR081",
+    UNVERIFIED_EMAIL: "Your email is not verified. Please verify your email to continue. Error Code: WZAR086",
+    USER_CANCELLED: "The operation was cancelled by the user. Error Code: WZAR087",
+    USER_DELETED: "The user account was not found. Error Code: WZAR088",
+    USER_DISABLED: "Your account has been disabled. Please contact support. Error Code: WZAR089",
+    USER_MISMATCH: "The user does not match. Error Code: WZAR090",
+    USER_SIGNED_OUT: "You have been signed out. Please log in again. Error Code: WZAR091",
+    WEAK_PASSWORD: "The password is too weak. Please choose a stronger password. Error Code: WZAR092",
+
+    // Software/Backend Errors
+    ADMIN_ONLY_OPERATION: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR001",
+    APP_NOT_AUTHORIZED: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR003",
+    APP_NOT_INSTALLED: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR004",
+    CORDOVA_NOT_READY: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR007",
+    CORS_UNSUPPORTED: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR008",
+    DEPENDENT_SDK_INIT_BEFORE_AUTH: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR012",
+    DYNAMIC_LINK_NOT_ACTIVATED: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR013",
+    EMULATOR_CONFIG_FAILED: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR016",
+    INTERNAL_ERROR: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR103",
+    INVALID_API_KEY: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR019",
+    INVALID_APP_CREDENTIAL: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR020",
+    INVALID_APP_ID: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR021",
+    INVALID_AUTH: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR022",
+    INVALID_AUTH_EVENT: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR023",
+    INVALID_CERT_HASH: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR024",
+    INVALID_CONTINUE_URI: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR026",
+    INVALID_CORDOVA_CONFIGURATION: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR027",
+    INVALID_CUSTOM_TOKEN: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR028",
+    INVALID_DYNAMIC_LINK_DOMAIN: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR029",
+    INVALID_EMULATOR_SCHEME: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR031",
+    INVALID_IDP_RESPONSE: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR032",
+    INVALID_MESSAGE_PAYLOAD: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR034",
+    INVALID_MFA_SESSION: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR035",
+    INVALID_OAUTH_CLIENT_ID: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR036",
+    INVALID_OAUTH_PROVIDER: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR037",
+    INVALID_OOB_CODE: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR038",
+    INVALID_ORIGIN: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR039",
+    INVALID_PERSISTENCE: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR041",
+    INVALID_PROVIDER_ID: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR043",
+    INVALID_RECIPIENT_EMAIL: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR044",
+    INVALID_SENDER: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR045",
+    INVALID_SESSION_INFO: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR046",
+    INVALID_TENANT_ID: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR047",
+    MFA_INFO_NOT_FOUND: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR048",
+    MFA_REQUIRED: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR049",
+    MISSING_ANDROID_PACKAGE_NAME: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR050",
+    MISSING_APP_CREDENTIAL: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR051",
+    MISSING_AUTH_DOMAIN: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR052",
+    MISSING_CODE: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR053",
+    MISSING_CONTINUE_URI: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR054",
+    MISSING_IFRAME_START: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR055",
+    MISSING_IOS_BUNDLE_ID: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR056",
+    MISSING_OR_INVALID_NONCE: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR057",
+    MISSING_MFA_INFO: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR058",
+    MISSING_MFA_SESSION: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR059",
+    MISSING_SESSION_INFO: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR061",
+    NO_AUTH_EVENT: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR065",
+    NO_SUCH_PROVIDER: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR066",
+    OPERATION_NOT_ALLOWED: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR067",
+    OPERATION_NOT_SUPPORTED: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR068",
+    REDIRECT_OPERATION_PENDING: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR074",
+    REJECTED_CREDENTIAL: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR075",
+    SECOND_FACTOR_ALREADY_ENROLLED: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR076",
+    SECOND_FACTOR_LIMIT_EXCEEDED: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR077",
+    TENANT_ID_MISMATCH: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR078",
+    UNAUTHORIZED_DOMAIN: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR082",
+    UNSUPPORTED_FIRST_FACTOR: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR083",
+    UNSUPPORTED_PERSISTENCE: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR084",
+    UNSUPPORTED_TENANT_OPERATION: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR085",
+    WEB_STORAGE_UNSUPPORTED: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR093",
+    ALREADY_INITIALIZED: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR094",
+    RECAPTCHA_NOT_ENABLED: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR095",
+    MISSING_RECAPTCHA_TOKEN: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR096",
+    INVALID_RECAPTCHA_TOKEN: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR097",
+    INVALID_RECAPTCHA_ACTION: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR098",
+    MISSING_CLIENT_TYPE: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR099",
+    MISSING_RECAPTCHA_VERSION: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR100",
+    INVALID_RECAPTCHA_VERSION: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR101",
+    INVALID_REQ_TYPE: "An error has occurred. Please contact an admin or write an email to support@wadzzo.com with the following error code. Error Code: WZAR102"
+
+};
 
 type errorType = {
     error: string;
@@ -11,269 +116,29 @@ type errorType = {
     password?: string;
     setVerifyEmail?: (value: boolean) => void;
     setForgetPass?: (value: boolean) => void;
-}
-
-
-export const handleFireBaseAuthError = async ({
-    error,
-    email,
-    password,
-    setVerifyEmail,
-    setForgetPass
-}: errorType) => {
-    if (error.includes(AuthErrorCodes.ADMIN_ONLY_OPERATION))
-        return toast("Admin-only operation.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.ARGUMENT_ERROR))
-        return toast("Invalid arguments provided.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.APP_NOT_AUTHORIZED))
-        return toast("The app is not authorized.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.APP_NOT_INSTALLED))
-        return toast("The app is not installed.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.CAPTCHA_CHECK_FAILED))
-        return toast("Captcha check failed.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.CODE_EXPIRED))
-        return toast("The code has expired.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.CORDOVA_NOT_READY))
-        return toast("Cordova is not ready.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.CORS_UNSUPPORTED))
-        return toast("CORS is unsupported on this device.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.CREDENTIAL_ALREADY_IN_USE))
-        return toast("This credential is already in use.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.CREDENTIAL_MISMATCH))
-        return toast("Custom token mismatch.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.CREDENTIAL_TOO_OLD_LOGIN_AGAIN))
-        return toast("Credential is too old. Please log in again.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.DEPENDENT_SDK_INIT_BEFORE_AUTH))
-        return toast("Dependent SDK initialized before auth.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.DYNAMIC_LINK_NOT_ACTIVATED))
-        return toast("Dynamic link is not activated.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.EMAIL_CHANGE_NEEDS_VERIFICATION))
-        return toast("Email change needs verification.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.EMAIL_EXISTS))
-        return toast("Email already in use.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.EMULATOR_CONFIG_FAILED))
-        return toast("Emulator configuration failed.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.EXPIRED_OOB_CODE))
-        return toast("The action code has expired.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.EXPIRED_POPUP_REQUEST))
-        return toast("Popup request expired.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INTERNAL_ERROR))
-        return toast("An internal error occurred.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INVALID_API_KEY))
-        return toast("Invalid API key.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INVALID_APP_CREDENTIAL))
-        return toast("Invalid app credential.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INVALID_APP_ID))
-        return toast("Invalid app ID.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INVALID_AUTH))
-        return toast("Invalid user token.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INVALID_AUTH_EVENT))
-        return toast("Invalid authentication event.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INVALID_CERT_HASH))
-        return toast("Invalid certificate hash.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INVALID_CODE))
-        return toast("Invalid verification code.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INVALID_CONTINUE_URI))
-        return toast("Invalid continue URI.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INVALID_CORDOVA_CONFIGURATION))
-        return toast("Invalid Cordova configuration.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INVALID_CUSTOM_TOKEN))
-        return toast("Invalid custom token.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INVALID_DYNAMIC_LINK_DOMAIN))
-        return toast("Invalid dynamic link domain.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INVALID_EMAIL))
-        return toast("Invalid email.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INVALID_EMULATOR_SCHEME))
-        return toast("Invalid emulator scheme.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INVALID_IDP_RESPONSE))
-        return toast("Invalid credential from IDP.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INVALID_LOGIN_CREDENTIALS))
-        return toast("Invalid login credentials.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INVALID_MESSAGE_PAYLOAD))
-        return toast("Invalid message payload.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INVALID_MFA_SESSION))
-        return toast("Invalid multi-factor session.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INVALID_OAUTH_CLIENT_ID))
-        return toast("Invalid OAuth client ID.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INVALID_OAUTH_PROVIDER))
-        return toast("Invalid OAuth provider.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INVALID_OOB_CODE))
-        return toast("Invalid action code.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INVALID_ORIGIN))
-        return toast("Unauthorized domain.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INVALID_PASSWORD)) {
-        setForgetPass?.(true);
-        toast("Wrong password. Please try again.", { ...commonToastStyles });
-        return;
-    }
-    else if (error.includes(AuthErrorCodes.INVALID_PERSISTENCE))
-        return toast("Invalid persistence type.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INVALID_PHONE_NUMBER))
-        return toast("Invalid phone number.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INVALID_PROVIDER_ID))
-        return toast("Invalid provider ID.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INVALID_RECIPIENT_EMAIL))
-        return toast("Invalid recipient email.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INVALID_SENDER))
-        return toast("Invalid sender.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INVALID_SESSION_INFO))
-        return toast("Invalid session information.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.INVALID_TENANT_ID))
-        return toast("Invalid tenant ID.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.MFA_INFO_NOT_FOUND))
-        return toast("Multi-factor info not found.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.MFA_REQUIRED))
-        return toast("Multi-factor authentication required.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.MISSING_ANDROID_PACKAGE_NAME))
-        return toast("Missing Android package name.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.MISSING_APP_CREDENTIAL))
-        return toast("Missing app credential.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.MISSING_AUTH_DOMAIN))
-        return toast("Missing auth domain configuration.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.MISSING_CODE))
-        return toast("Missing verification code.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.MISSING_CONTINUE_URI))
-        return toast("Missing continue URI.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.MISSING_IFRAME_START))
-        return toast("Missing iframe start.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.MISSING_IOS_BUNDLE_ID))
-        return toast("Missing iOS bundle ID.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.MISSING_OR_INVALID_NONCE))
-        return toast("Missing or invalid nonce.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.MISSING_MFA_INFO))
-        return toast("Missing multi-factor info.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.MISSING_MFA_SESSION))
-        return toast("Missing multi-factor session.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.MISSING_PHONE_NUMBER))
-        return toast("Missing phone number.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.MISSING_SESSION_INFO))
-        return toast("Missing session information.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.MODULE_DESTROYED))
-        return toast("The app module has been destroyed.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.NEED_CONFIRMATION))
-        return toast("Account exists with a different credential.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.NETWORK_REQUEST_FAILED))
-        return toast("Network request failed.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.NULL_USER))
-        return toast("No user is logged in.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.NO_AUTH_EVENT))
-        return toast("No authentication event found.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.NO_SUCH_PROVIDER))
-        return toast("No such provider exists.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.OPERATION_NOT_ALLOWED))
-        return toast("Operation is not allowed.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.OPERATION_NOT_SUPPORTED))
-        return toast("Operation is not supported in this environment.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.POPUP_BLOCKED))
-        return toast("Popup was blocked.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.POPUP_CLOSED_BY_USER))
-        return toast("Popup closed by the user.", { ...commonToastStyles });
-    else if (error.includes(AuthErrorCodes.PROVIDER_ALREADY_LINKED))
-        return toast("Provider is already linked.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.QUOTA_EXCEEDED))
-        return toast("Quota exceeded. Please try again later.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.REDIRECT_CANCELLED_BY_USER))
-        return toast("Redirect was cancelled by the user.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.REDIRECT_OPERATION_PENDING))
-        return toast("A redirect operation is already pending.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.REJECTED_CREDENTIAL))
-        return toast("The credential was rejected.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.SECOND_FACTOR_ALREADY_ENROLLED))
-        return toast("Second factor already enrolled.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.SECOND_FACTOR_LIMIT_EXCEEDED))
-        return toast("Maximum second factor count exceeded.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.TENANT_ID_MISMATCH))
-        return toast("Tenant ID mismatch.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.TIMEOUT))
-        return toast("The operation timed out. Please try again.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.TOKEN_EXPIRED))
-        return toast("Your session token has expired. Please log in again.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.TOO_MANY_ATTEMPTS_TRY_LATER))
-        return toast("Too many attempts. Please try again later.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.UNAUTHORIZED_DOMAIN))
-        return toast("This domain is not authorized.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.UNSUPPORTED_FIRST_FACTOR))
-        return toast("Unsupported first factor.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.UNSUPPORTED_PERSISTENCE))
-        return toast("Unsupported persistence type.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.UNSUPPORTED_TENANT_OPERATION))
-        return toast("Unsupported tenant operation.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.UNVERIFIED_EMAIL)) {
-        setVerifyEmail?.(true);
-        toast("Email is not verified. Check your email.", { ...commonToastStyles });
-        return;
-    }
-
-    else if (error.includes(AuthErrorCodes.USER_CANCELLED))
-        return toast("The user has cancelled the operation.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.USER_DELETED))
-        return toast("User not found. Please signup first.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.USER_DISABLED))
-        return toast("The user account has been disabled.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.USER_MISMATCH))
-        return toast("User credentials do not match.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.USER_SIGNED_OUT))
-        return toast("The user has been signed out.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.WEAK_PASSWORD))
-        return toast("The password is too weak.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.WEB_STORAGE_UNSUPPORTED))
-        return toast("Web storage is not supported on this browser.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.ALREADY_INITIALIZED))
-        return toast("The app has already been initialized.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.RECAPTCHA_NOT_ENABLED))
-        return toast("ReCAPTCHA is not enabled.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.MISSING_RECAPTCHA_TOKEN))
-        return toast("ReCAPTCHA token is missing.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.INVALID_RECAPTCHA_TOKEN))
-        return toast("Invalid ReCAPTCHA token.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.INVALID_RECAPTCHA_ACTION))
-        return toast("Invalid ReCAPTCHA action.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.MISSING_CLIENT_TYPE))
-        return toast("Client type is missing.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.MISSING_RECAPTCHA_VERSION))
-        return toast("ReCAPTCHA version is missing.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.INVALID_RECAPTCHA_VERSION))
-        return toast("Invalid ReCAPTCHA version.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.INVALID_REQ_TYPE))
-        return toast("Invalid request type.", { ...commonToastStyles });
-
-    else if (error.includes(AuthErrorCodes.TOO_MANY_ATTEMPTS_TRY_LATER))
-        return toast("Too many attempts. Please try again later.", { ...commonToastStyles });
-
-    else
-        return toast("Unknown error. Please contact support.", { ...commonToastStyles });
-
 };
+
+export const handleFireBaseAuthError = async ({ error, email, password, setVerifyEmail, setForgetPass }: errorType) => {
+
+
+    const errorKey = Object.entries(AuthErrorCodes).find(([key, value]) =>
+        error.includes(value)
+    )?.[0];
+
+
+    if (errorKey) {
+        const errorMessage = AuthErrorMessages[errorKey as keyof typeof AuthErrorMessages];
+        console.error(errorKey, errorMessage);
+        if (errorKey === "INVALID_PASSWORD") {
+            setForgetPass?.(true);
+        } else if (errorKey === "UNVERIFIED_EMAIL") {
+            setVerifyEmail?.(true);
+        }
+        return toast(errorMessage, { ...commonToastStyles });
+    }
+    return toast("Unknown error. Please contact support.", { ...commonToastStyles });
+};
+
 const commonToastStyles = {
     duration: 3000,
     icon: "❌",
