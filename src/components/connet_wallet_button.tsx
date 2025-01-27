@@ -4,6 +4,7 @@ import { LogOut } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { addrShort } from "../lib/utils";
 import { useDialogStore } from "../state/connect_wallet_dialog";
+import { Button } from "~/components/shadcn/ui/button";
 
 export default function ConnectWalletButton({ text }: { text?: string }) {
   const session = useSession();
@@ -11,14 +12,15 @@ export default function ConnectWalletButton({ text }: { text?: string }) {
   const setDialog = useDialogStore();
   return (
     <div className="flex items-center gap-2 ">
-      <button onClick={() => setDialog.setIsOpen(true)} className="flex-1 pb-2">
-        <div className="tsd btn flex items-center justify-center rounded-xl border border-slate-50/10 bg-base-200 px-4 py-2 text-sm font-bold tracking-wider text-gray-700 backdrop-blur hover:scale-95 hover:border-blue-800 hover:bg-blue-800 hover:text-blue-100 focus:border-blue-700 active:ring-blue-500 ">
-          <div className="relative mr-2 h-6 w-6">
+      <Button onClick={() => setDialog.setIsOpen(true)} className="flex-1 pb-2 shadow-md ">
+        <div className="flex items-center gap-2 ">
+          <div className="h-8 w-8">
             <Image
               alt="logo"
-              layout="fill"
               objectFit="cover"
               src="/favicon.ico"
+              height={1000}
+              width={1000}
             />
           </div>
           <span className="text-base-content">
@@ -27,8 +29,12 @@ export default function ConnectWalletButton({ text }: { text?: string }) {
               : "Login/Signup"}
           </span>
         </div>
-      </button>
-      {session.status == "authenticated" && <LogOutButon />}
+      </Button>
+      {session.status == "authenticated" &&
+        <Button className="flex pb-2 shadow-md">
+          <LogOutButon />
+        </Button>
+      }
     </div>
   );
 }

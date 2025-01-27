@@ -25,6 +25,7 @@ import { USER_ACCOUNT_XDR_URL } from "../lib/stellar/constant";
 import { submitSignedXDRToServer4UserPubnet } from "../lib/stellar/trx/payment_fb_g";
 import { Button } from "../shadcn/ui/button";
 import { handleFireBaseAuthError } from "./firebase-error";
+import { Input } from "~/components/shadcn/ui/input";
 
 function LoginPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -218,13 +219,15 @@ function LoginPage() {
       onSubmit={handleSubmit(onSubmit)}
     >
       <label className="form-control w-full ">
-        <input
+        <Input
           type="email"
           disabled={submitMutation.isLoading}
           required
           {...register("email", { required: true })}
           placeholder="Email"
-          className="input input-bordered w-full "
+          className="input input-bordered w-full focus-visible:ring-0 focus-visible:ring-transparent focus-visible:ring-offset-0
+
+"
         />
         {errors.email && (
           <div className="label">
@@ -233,13 +236,15 @@ function LoginPage() {
         )}
       </label>
       <label className="form-control w-full max-w-md">
-        <input
+        <Input
           disabled={submitMutation.isLoading}
           required
           {...register("password")}
           type="password"
           placeholder="Password"
-          className="input input-bordered w-full "
+          className="input input-bordered w-full focus-visible:ring-0 focus-visible:ring-transparent focus-visible:ring-offset-0
+
+"
         />
         {(errors.password ?? forgetPassword) && (
           <div className="label">
