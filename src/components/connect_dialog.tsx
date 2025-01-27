@@ -10,7 +10,6 @@ import { ArrowUpCircle, BadgeX, QrCodeIcon, RefreshCcw } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import CopyToClipboard from "react-copy-to-clipboard";
 
-import Loading from "~/components/wallete/loading";
 import { WalletType } from "../lib/enums";
 import { checkStellarAccountActivity } from "../lib/stellar/utils";
 import { albedoLogin } from "../lib/stellar/wallet_clients/albedo_login";
@@ -39,6 +38,7 @@ import { useRouter } from "next/router";
 
 import { Dialog, DialogContent, DialogTitle } from "../shadcn/ui/dialog";
 import SignUP from "./sign_up";
+import Loading from "~/components/common/loading";
 
 interface ConnectDialogProps {
   className: string;
@@ -106,9 +106,6 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
   const handleClose = () => {
     dialogModalState.setIsOpen(false);
   };
-
-  if (session.status === "loading" || loading || isAccountActivateLoading)
-    return <Loading />;
 
   return (
     <Dialog open={dialogModalState.isOpen} onOpenChange={handleClose}>
@@ -261,7 +258,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                     {signUP ? <SignUP /> : <LoginPage />}
                     {!session?.data?.user && (
                       <Button
-                        variant="link"
+                        variant="destructive"
                         className="w-full"
                         onClick={() => setSignUP(!signUP)}
                       >
