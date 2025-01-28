@@ -12,7 +12,7 @@ export default function ConnectWalletButton({ text }: { text?: string }) {
   const setDialog = useDialogStore();
   return (
     <div className="flex items-center gap-2 ">
-      <Button onClick={() => setDialog.setIsOpen(true)} className="flex-1 pb-2 shadow-md ">
+      <Button onClick={() => setDialog.setIsOpen(true)} className="flex-1 pb-2 shadow-sm shadow-black">
         <div className="flex items-center gap-2 ">
           <div className="h-8 w-8">
             <Image
@@ -31,7 +31,7 @@ export default function ConnectWalletButton({ text }: { text?: string }) {
         </div>
       </Button>
       {session.status == "authenticated" &&
-        <Button className="flex pb-2 shadow-md">
+        <Button className="flex pb-2 shadow-sm shadow-black">
           <LogOutButon />
         </Button>
       }
