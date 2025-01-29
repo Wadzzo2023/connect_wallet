@@ -11,34 +11,41 @@ export default function ConnectWalletButton({ text }: { text?: string }) {
 
   const setDialog = useDialogStore();
   return (
-    <div className="flex items-center gap-2 ">
-      <Button onClick={() => setDialog.setIsOpen(true)} className="flex-1 pb-2 shadow-sm shadow-black">
+    <div className="flex items-center gap-2  ">
+      <Button
+        size='lg'
+        onClick={() => setDialog.setIsOpen(true)} className="flex-1 p-2 shadow-sm shadow-black">
         <div className="flex items-center gap-2 ">
-          <div className="h-8 w-8">
+          <div className="h-10 w-10">
             <Image
               alt="logo"
               objectFit="cover"
-              src="/favicon.ico"
-              height={1000}
-              width={1000}
+              src={session.data?.user.image || "/favicon.ico"}
+              height={200}
+              width={200}
+              className="rounded-full border-2"
             />
           </div>
           <span className="text-base-content">
             {session.status == "authenticated"
-              ? addrShort(session.data.user.id)
+              ? <span className="flex flex-col items-start">
+                <p>
+                  {session.data?.user.name}
+                </p>
+                <p>
+                  PUBKEY : {addrShort(session.data?.user.id)}
+                </p>
+              </span>
               : "Login/Signup"}
           </span>
         </div>
       </Button>
       {session.status == "authenticated" &&
-        <Button className="flex pb-2 shadow-sm shadow-black">
-          <LogOutButon />
-        </Button>
+        <LogOutButon />
       }
     </div>
   );
 }
-
 function LogOutButon() {
   async function disconnectWallet() {
     await signOut({
@@ -46,8 +53,9 @@ function LogOutButon() {
     });
   }
   return (
-    <button className="btn btn-circle" onClick={disconnectWallet}>
-      <LogOut />
-    </button>
+    <Button className="flex flex-col p-3 shadow-sm shadow-black" onClick={disconnectWallet}>
+      <span> <LogOut /></span>
+      <span className="text-xs">Logout</span>
+    </Button>
   );
 }
