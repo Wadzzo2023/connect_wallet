@@ -14,18 +14,18 @@ export default function ConnectWalletButton({ text }: { text?: string }) {
     <div className="flex items-center gap-2  ">
       <Button
         size='lg'
-        onClick={() => setDialog.setIsOpen(true)} className="flex-1 p-2 shadow-sm shadow-black">
+        onClick={() => setDialog.setIsOpen(true)} className=" p-2 shadow-sm shadow-black">
         <div className="flex items-center gap-2 ">
-          <div className="h-10 w-10">
-            <Image
-              alt="logo"
-              objectFit="cover"
-              src={session.data?.user.image || "/favicon.ico"}
-              height={200}
-              width={200}
-              className="rounded-full border-2"
-            />
-          </div>
+
+          <Image
+            alt="logo"
+
+            src={session.data?.user.image || "/favicon.ico"}
+            height={200}
+            width={200}
+            className="rounded-full h-8 w-8 border-2"
+          />
+
           <span className="text-base-content">
             {session.status == "authenticated"
               ? <span className="flex flex-col items-start">
