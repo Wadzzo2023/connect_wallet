@@ -29,7 +29,7 @@ export default function ConnectWalletButton({ text }: { text?: string }) {
           <span className="text-base-content">
             {session.status == "authenticated"
               ? <span className="flex flex-col items-start">
-                <p>
+                <p className="truncate ">
                   {session.data?.user.name}
                 </p>
                 <p>
