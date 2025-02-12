@@ -274,7 +274,9 @@ function LoginPage() {
       )}
 
       {verifyEmail && <p>Check your email to verify account.</p>}
-      <Button disabled={submitMutation.isLoading} type="submit">
+      <Button disabled={submitMutation.isLoading}
+        className="shadow-sm shadow-black"
+        type="submit">
         {submitMutation.isLoading && (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         )}

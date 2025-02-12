@@ -149,7 +149,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
           toolTips={toolTipsAddr(WalletType.apple)}
           isSelected={selectedWallet === WalletType.apple}
           onClick={() => void appleLogin()}
-          className="mb-2 inline-flex items-center rounded-lg bg-[#050708] px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-[#050708]/90 focus:outline-none focus:ring-4 focus:ring-[#050708]/50 dark:hover:bg-[#050708]/30 dark:focus:ring-[#050708]/50"
+          className="mb-2 shadow-sm shadow-foreground inline-flex items-center rounded-lg bg-[#050708] px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-[#050708]/90 focus:outline-none focus:ring-4 focus:ring-[#050708]/50 dark:hover:bg-[#050708]/30 dark:focus:ring-[#050708]/50"
           icon={
             <svg
               className="mr-2 h-5 w-5"
@@ -173,7 +173,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
           toolTips={toolTipsAddr(WalletType.google)}
           isSelected={selectedWallet === WalletType.google}
           onClick={() => void googleLogin()}
-          className="mb-2 inline-flex items-center rounded-lg bg-[#4285F4] px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-[#4285F4]/90 focus:outline-none focus:ring-4 focus:ring-[#4285F4]/50 dark:focus:ring-[#4285F4]/55"
+          className="mb-2  shadow-sm shadow-foreground inline-flex items-center rounded-lg bg-[#4285F4] px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-[#4285F4]/90 focus:outline-none focus:ring-4 focus:ring-[#4285F4]/50 dark:focus:ring-[#4285F4]/55"
           icon={
             <svg
               className="mr-2 h-4 w-4"
@@ -259,7 +259,8 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                     {!session?.data?.user && (
                       <Button
                         variant="destructive"
-                        className="w-full"
+                        className="shadow-sm shadow-foreground w-full"
+
                         onClick={() => setSignUP(!signUP)}
                       >
                         {signUP ? "Login" : "Sign up"}
@@ -273,7 +274,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                   <div className="">
                     <div className="grid grid-cols-2 gap-1">
                       <IconButton
-                        className="mb-2 me-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
+                        className="mb-2 shadow-sm shadow-foreground me-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
                         toolTips={toolTipsAddr(WalletType.frieghter)}
                         isSelected={selectedWallet === WalletType.frieghter}
                         onClick={() => void freighterLogin()}
@@ -281,7 +282,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                         text="Freighter"
                       />
                       <IconButton
-                        className="mb-2 me-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
+                        className="mb-2 me-2 rounded-lg shadow-sm shadow-foreground border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
                         toolTips={toolTipsAddr(WalletType.rabet)}
                         isSelected={selectedWallet === WalletType.rabet}
                         onClick={() => void rabetLogin()}
@@ -289,7 +290,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                         text="Rabet"
                       />
                       <IconButton
-                        className="mb-2 me-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
+                        className="mb-2 me-2 rounded-lg border shadow-sm shadow-foreground border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700"
                         toolTips={toolTipsAddr(WalletType.albedo)}
                         isSelected={selectedWallet === WalletType.albedo}
                         onClick={() => void albedoLogin()}
