@@ -2,6 +2,7 @@
 import clsx from "clsx";
 import Image from "next/image";
 import type { MouseEventHandler } from "react";
+import { Button } from "../shadcn/ui/button";
 
 interface IconButtonProps {
   text: string;
@@ -12,6 +13,8 @@ interface IconButtonProps {
   isSelected?: boolean;
   toolTips?: string;
   disable?: boolean;
+  darkImageUrl?: string;
+  className?: string;
 }
 
 export default function IconButton(props: IconButtonProps) {
@@ -21,33 +24,23 @@ export default function IconButton(props: IconButtonProps) {
       className={clsx(props.toolTips ? "tooltip w-full" : "", "flex-1")}
     >
       <button
-        disabled={props.disable}
+        className={clsx(
+          `flex w-full items-center justify-center ${props.className}`,
+        )}
         onClick={props.onClick}
-        className={`${
-          props.isSelected
-            ? "bg-green-200/50 ring-2 ring-green-500/90"
-            : "bg-slate-100/60 "
-        }  w-full ${props.disable ? "" : "hover:rounded-3xl"} 
-    tsd tsd flex overflow-hidden rounded-xl border border-slate-50/25
-    px-4 py-3 text-xl font-bold tracking-wider text-slate-800/80 backdrop-blur-3xl focus:border-blue-400 focus:outline-none focus:ring focus:ring-blue-300
-        active:scale-90 ${props.justify ?? "justify-center"} items-center 
-        ${
-          props.disable
-            ? "opacity-70"
-            : "hover:border-blue-400 hover:bg-blue-100 hover:text-blue-500/80"
-        } `}
       >
         {props.imageUrl ? (
           <Image
-            className="rounded-full"
-            height="40"
-            width="40"
+            className=" h-5 w-5  rounded-full object-contain  "
+            height={30}
+            width={30}
             src={props.imageUrl}
             alt={props.text}
           />
         ) : (
           props.icon
         )}
+
         <span className="ml-2">{props.text}</span>
       </button>
     </div>
