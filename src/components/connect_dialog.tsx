@@ -9,7 +9,6 @@ import {
 import { ArrowUpCircle, BadgeX, QrCodeIcon, RefreshCcw } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import CopyToClipboard from "react-copy-to-clipboard";
-
 import { WalletType } from "../lib/enums";
 import { checkStellarAccountActivity } from "../lib/stellar/utils";
 import { albedoLogin } from "../lib/stellar/wallet_clients/albedo_login";
