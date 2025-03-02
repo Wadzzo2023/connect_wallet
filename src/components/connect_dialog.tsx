@@ -5,7 +5,6 @@ import {
   DocumentDuplicateIcon,
   SignalSlashIcon,
 } from "@heroicons/react/24/solid";
-
 import { ArrowUpCircle, BadgeX, QrCodeIcon, RefreshCcw } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import CopyToClipboard from "react-copy-to-clipboard";
