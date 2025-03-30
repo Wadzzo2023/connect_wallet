@@ -2,7 +2,6 @@
 import clsx from "clsx";
 import Image from "next/image";
 import type { MouseEventHandler } from "react";
-import { Button } from "../shadcn/ui/button";
 
 interface IconButtonProps {
   text: string;
