@@ -5,6 +5,11 @@ import { signOut, useSession } from "next-auth/react";
 import { addrShort } from "../lib/utils";
 import { useDialogStore } from "../state/connect_wallet_dialog";
 import { Button } from "~/components/shadcn/ui/button";
+import {
+  Avatar,
+  AvatarImage,
+  AvatarFallback
+} from "~/components/shadcn/ui/avatar";
 
 export default function ConnectWalletButton({ text }: { text?: string }) {
   const session = useSession();
@@ -16,15 +21,11 @@ export default function ConnectWalletButton({ text }: { text?: string }) {
         size='lg'
         onClick={() => setDialog.setIsOpen(true)} className=" p-2 shadow-sm shadow-black">
         <div className="flex items-center gap-2 ">
+          <Avatar>
+            <AvatarImage src={session.data?.user.image ?? ""} />
+            <AvatarFallback>BC</AvatarFallback>
+          </Avatar>
 
-          <Image
-            alt="logo"
-
-            src={session.data?.user.image || "/favicon.ico"}
-            height={200}
-            width={200}
-            className="rounded-full h-8 w-8 border-2"
-          />
 
           <span className="text-base-content">
             {session.status == "authenticated"

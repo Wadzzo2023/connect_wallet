@@ -38,7 +38,6 @@ import { useRouter } from "next/router";
 
 import { Dialog, DialogContent, DialogTitle } from "../shadcn/ui/dialog";
 import SignUP from "./sign_up";
-import Loading from "~/components/common/loading";
 
 interface ConnectDialogProps {
   className: string;
