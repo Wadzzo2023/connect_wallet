@@ -7,13 +7,11 @@ import {
   Transaction,
   TransactionBuilder,
 } from "@stellar/stellar-sdk";
-import { MOTHER_SECRET } from "~/lib/stellar/marketplace/SECRET";
-import { networkPassphrase, STELLAR_URL } from "../constant";
 
 export async function GetDummyXDR({ pubkey }: { pubkey: string }) {
   const server = new Horizon.Server("https://horizon.stellar.org");
 
-  const serverKeypair = Keypair.fromSecret(MOTHER_SECRET);
+  const aValidPubkey = process.env.NEXT_PUBLIC_ASSET_ISSUER!;
 
   const transactionInializer = await server.loadAccount(pubkey);
 
@@ -28,7 +26,7 @@ export async function GetDummyXDR({ pubkey }: { pubkey: string }) {
         amount: "0.000001",
         source: pubkey,
         asset: Asset.native(),
-        destination: serverKeypair.publicKey(),
+        destination: aValidPubkey,
       }),
     )
 
