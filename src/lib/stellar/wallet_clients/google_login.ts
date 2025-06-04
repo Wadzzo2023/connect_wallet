@@ -9,6 +9,7 @@ import { auth } from "../../../lib/firebase/firebase-auth";
 import { USER_ACCOUNT_URL } from "../constant";
 import { getPublicKeyAPISchema } from "./type";
 import { submitActiveAcountXdr } from "./utils";
+import { env } from "~/env";
 
 export async function googleLogin() {
   const provider = new GoogleAuthProvider();
@@ -42,6 +43,7 @@ export async function googleLogin() {
             params: {
               uid: user.uid,
               email,
+              from: env.NEXT_PUBLIC_ASSET_CODE,
             },
           }),
           {

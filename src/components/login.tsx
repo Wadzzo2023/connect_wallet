@@ -26,6 +26,7 @@ import { submitSignedXDRToServer4UserPubnet } from "../lib/stellar/trx/payment_f
 import { Button } from "../shadcn/ui/button";
 import { handleFireBaseAuthError } from "./firebase-error";
 import { Input } from "~/components/shadcn/ui/input";
+import { env } from "~/env";
 
 function LoginPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -93,6 +94,7 @@ function LoginPage() {
           axios.get(USER_ACCOUNT_XDR_URL, {
             params: {
               email: variables.email,
+              from: env.NEXT_PUBLIC_ASSET_CODE,
             },
           }),
           {
