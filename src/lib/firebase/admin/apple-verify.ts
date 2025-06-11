@@ -16,6 +16,6 @@ export async function verifyAppleToken(identityToken: string) {
   // Verify token
   return jwt.verify(identityToken, publicKey, {
     algorithms: ["RS256"],
-    audience: "com.thebillboardapp.wadzzo", // Your app's identifier
+    audience: "com.actionverse.actiontokens", // Your app's identifier
   });
 }
