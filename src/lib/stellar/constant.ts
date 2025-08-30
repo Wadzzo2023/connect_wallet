@@ -53,3 +53,11 @@ export const PLATFORM_FEE = platformFee;
 
 export const STROOP = "0.0000001";
 export const TRUST_XLM = 0.6;
+// Fee for transaction in bandcoin
+// in xlm
+export const PLATFORM_FEE_IN_XLM = 0.005;
+export const trxBaseFeeInXLM = 0.005;
+
+// simplified fee (trxBaseFee + platform fee)
+export const SIMPLIFIED_FEE = 2050; // in bandcoin
+export const SIMPLIFIED_FEE_IN_XLM = 0.01; // in xlm
