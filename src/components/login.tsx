@@ -27,262 +27,131 @@ import { Button } from "../shadcn/ui/button";
 import { handleFireBaseAuthError } from "./firebase-error";
 import { Input } from "~/components/shadcn/ui/input";
 
-function LoginPage() {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [verifyEmail, setVerifyEmail] = useState(false);
+const formSchema = z.object({
+  email: z.string().email("Please enter a valid email"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+})
 
-  const sesssion = useSession();
+type FormInputs = z.infer<typeof formSchema>
+
+export default function LoginForm() {
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const [verifyEmail, setVerifyEmail] = useState(false)
+  const session = useSession()
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // User is signed in.
-        setCurrentUser(user);
-      } else {
-        // No user is signed in.
-        setCurrentUser(null);
-      }
-    });
+      setCurrentUser(user)
+    })
+    return unsubscribe
+  }, [])
 
-    return unsubscribe;
-  }, []);
-
-  useEffect(() => {
-    if (sesssion.status == "authenticated") {
-      const user = sesssion.data.user;
-      if (user.walletType == WalletType.emailPass) {
-        // void (async () => await emailPassLogin(walletState))();
-      }
-    }
-    // if (
-    //   auth.currentUser &&
-    //   auth.currentUser.emailVerified &&
-    //   walletState.walletType !== WalletType.emailPass
-    // ) {
-    //   void (async () => await emailPassLogin(walletState))();
-    // }
-  }, [sesssion.status]);
-
-  const formSchema = z.object({
-    email: z.string().email(),
-    password: z.string().min(8),
-  });
-
-  type Inputs = z.infer<typeof formSchema>;
-
-  const [forgetPassword, setForgetPass] = useState(false);
   const {
     register,
     handleSubmit,
     formState: { errors },
-    getValues,
-  } = useForm<z.infer<typeof formSchema>>({
+  } = useForm<FormInputs>({
     resolver: zodResolver(formSchema),
     defaultValues: {},
-  });
+  })
 
-  const submitMutation = useMutation({
-    mutationFn: (data: Inputs) => loginUser(data.email, data.password),
+  const loginMutation = useMutation({
+    mutationFn: (data: FormInputs) => loginUser(data.email, data.password),
     onSuccess: async (res, variables) => {
       if (res?.ok) {
-        toast.success("User successfully logged in");
-        resetPasswordMutation.reset();
+        toast.success("Successfully logged in")
 
-        // return;
-        const res = await toast.promise(
+        const xdrRes = await toast.promise(
           axios.get(USER_ACCOUNT_XDR_URL, {
-            params: {
-              email: variables.email,
-            },
+            params: { email: variables.email },
           }),
           {
             loading: "Getting public key...",
             success: "Received public key",
             error: "Unable to get xdr",
           },
-        );
+        )
 
-        const xdr = res.data.xdr as string;
+        const xdr = xdrRes.data.xdr as string
         if (xdr) {
-          // console.log(xdr, "xdr");
-          const res = await toast.promise(
-            submitSignedXDRToServer4UserPubnet(xdr),
-            {
-              loading: "Activating account...",
-              success: "Request completed successfully",
-              error: "While activating account error happened, Try again later",
-            },
-          );
-
-          if (res) {
-            toast.success("Account activated");
+          const activateRes = await toast.promise(submitSignedXDRToServer4UserPubnet(xdr), {
+            loading: "Activating account...",
+            success: "Request completed successfully",
+            error: "Error activating account, try again later",
+          })
+          if (activateRes) {
+            toast.success("Account activated")
           } else {
-            toast.error("Account activation failed");
+            toast.error("Account activation failed")
           }
         }
-      } else {
-        // console.log("current user dont here", currentUser);
       }
+
       if (res?.error) {
-        const error = res.error;
-        if (error) {
-          console.log(error);
-          handleFireBaseAuthError({
-            error,
-            email: variables.email,
-            password: variables.password,
-            setVerifyEmail,
-            setForgetPass,
-          });
-
-        }
-        else {
-          toast.error(error);
-        }
+        handleFireBaseAuthError({
+          error: res.error,
+          email: variables.email,
+          password: variables.password,
+          setVerifyEmail,
+        })
       }
-      // Invalidate and refetch
     },
-    onError: (error: AuthError, variables) => {
-      const errorCode = error.code;
-      if (errorCode == AuthErrorCodes.USER_DELETED) {
-        // user is not signed In
-        // registerUser(variables.email, variables.password);
-      } else if (errorCode == AuthErrorCodes.INVALID_PASSWORD) {
-        // passowrd invalid
-        toast.error("Invalid Credential");
-        setForgetPass(true);
+    onError: (error: AuthError) => {
+      const errorCode = error.code
+      if (errorCode === AuthErrorCodes.INVALID_PASSWORD) {
+        toast.error("Invalid credentials")
       } else {
-        const errorMessage = error.message;
-        toast.error(`${errorCode} ${errorMessage}`);
-        console.log(error);
+        toast.error(error.message)
       }
     },
-  });
-
-  const resetPasswordMutation = useMutation({
-    mutationFn: ({ email }: { email: string }) => resetPassword(email),
-    onSuccess(data, variables, context) {
-      toast.success("A verification email has been sent to your email.");
-    },
-    onError(error: AuthError, variables, context) {
-      const errorCode = error.code;
-      handleFireBaseAuthError({
-        error: errorCode,
-        setForgetPass,
-      });
-      const errorMessage = error.message;
-      toast.error(errorMessage);
-      console.log(error);
-    },
-  });
-
-  const onSubmit: SubmitHandler<Inputs> = (data) => {
-    submitMutation.mutate(data);
-  };
-  async function registerUser(email: string, password: string) {
-    createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        // Signed up
-        const user = userCredential.user;
-        toast.success("Account created successfully! Now you can login.");
-        setCurrentUser(user);
-        // send verification email
-      })
-      .catch((error: AuthError) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        toast.error(errorMessage);
-        console.log(error);
-        // ..
-      });
-  }
+  })
 
   async function loginUser(email: string, password: string) {
-    await auth.signOut();
-
+    await auth.signOut()
     return await signIn("credentials", {
       redirect: false,
       password,
       email,
       walletType: WalletType.emailPass,
-    } as AuthCredentialType);
-    // return signInWithEmailAndPassword(auth, email, password);
+    } as AuthCredentialType)
   }
 
-  function resetPassword(email: string) {
-    return sendPasswordResetEmail(auth, email);
+  const onSubmit: SubmitHandler<FormInputs> = (data) => {
+    loginMutation.mutate(data)
   }
 
   return (
-    <form
-      className="flex w-full flex-col gap-2 rounded-lg "
-      onSubmit={handleSubmit(onSubmit)}
-    >
-      <label className="form-control w-full ">
+    <form className="flex w-full flex-col gap-3" onSubmit={handleSubmit(onSubmit)}>
+      <div className="space-y-1">
         <Input
           type="email"
-          disabled={submitMutation.isLoading}
+          disabled={loginMutation.isLoading}
           required
-          {...register("email", { required: true })}
+          {...register("email")}
           placeholder="Email"
-          className="input input-bordered w-full focus-visible:ring-0 focus-visible:ring-transparent focus-visible:ring-offset-0
-
-"
+          className="w-full"
         />
-        {errors.email && (
-          <div className="label">
-            <span className="label-text-alt">{errors.email.message}</span>
-          </div>
-        )}
-      </label>
-      <label className="form-control w-full max-w-md">
+        {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+      </div>
+
+      <div className="space-y-1">
         <Input
-          disabled={submitMutation.isLoading}
+          type="password"
+          disabled={loginMutation.isLoading}
           required
           {...register("password")}
-          type="password"
           placeholder="Password"
-          className="input input-bordered w-full focus-visible:ring-0 focus-visible:ring-transparent focus-visible:ring-offset-0
-
-"
+          className="w-full"
         />
-        {(errors.password ?? forgetPassword) && (
-          <div className="label">
-            {errors.password && (
-              <span className="label-text-alt">{errors.password.message}</span>
-            )}
-            {forgetPassword && (
-              <span className="label-text-alt hover:text-base-300">
-                <a
-                  className="btn btn-link btn-sm"
-                  onClick={() =>
-                    resetPasswordMutation.mutate({ email: getValues("email") })
-                  }
-                >
-                  {resetPasswordMutation.isLoading && (
-                    <span className="loading loading-spinner"></span>
-                  )}
-                  Forget Password?
-                </a>
-              </span>
-            )}
-          </div>
-        )}
-      </label>
-      {resetPasswordMutation.isSuccess && (
-        <p>Check you email to reset password</p>
-      )}
+        {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
+      </div>
 
-      {verifyEmail && <p>Check your email to verify account.</p>}
-      <Button disabled={submitMutation.isLoading} type="submit">
-        {submitMutation.isLoading && (
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        )}
-        LOGIN
-        {/* <input  type="submit" /> */}
+      {verifyEmail && <p className="text-sm text-amber-600">Check your email to verify your account.</p>}
+
+      <Button disabled={loginMutation.isLoading} type="submit" className="w-full">
+        {loginMutation.isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        Sign In
       </Button>
     </form>
-  );
+  )
 }
-
-export default LoginPage;
