@@ -20,208 +20,119 @@ import { z } from "zod";
 import { WalletType } from "../lib/enums";
 import { auth } from "../lib/firebase/firebase-auth";
 import { Button } from "../shadcn/ui/button";
+import { Input } from "~/components/shadcn/ui/input";
+const formSchema = z
+  .object({
+    email: z.string().email("Please enter a valid email"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string().min(8, "Password must be at least 8 characters"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  })
 
-function SignUP() {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [confirmPass, setConfirmPass] = useState<string>();
+type FormInputs = z.infer<typeof formSchema>
 
-  const sesssion = useSession();
+interface SignUpFormProps {
+  onSuccess?: () => void
+}
+
+export default function SignUpForm({ onSuccess }: SignUpFormProps) {
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const [emailSent, setEmailSent] = useState(false)
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // User is signed in.
-        setCurrentUser(user);
-      } else {
-        // No user is signed in.
-        setCurrentUser(null);
-      }
-    });
+      setCurrentUser(user)
+    })
+    return unsubscribe
+  }, [])
 
-    return unsubscribe;
-  }, []);
-
-  useEffect(() => {
-    if (sesssion.status == "authenticated") {
-      const user = sesssion.data.user;
-      if (user.walletType == WalletType.emailPass) {
-        // void (async () => await emailPassLogin(walletState))();
-      }
-    }
-    // if (
-    //   auth.currentUser &&
-    //   auth.currentUser.emailVerified &&
-    //   walletState.walletType !== WalletType.emailPass
-    // ) {
-    //   void (async () => await emailPassLogin(walletState))();
-    // }
-  }, [sesssion.status]);
-
-  const formSchema = z.object({
-    email: z.string().email(),
-    password: z.string().min(8),
-  });
-
-  type Inputs = z.infer<typeof formSchema>;
-
-  const [forgetPassword, setForgetPass] = useState(false);
   const {
     register,
     handleSubmit,
     formState: { errors },
-    getValues,
-  } = useForm<z.infer<typeof formSchema>>({
+    reset,
+  } = useForm<FormInputs>({
     resolver: zodResolver(formSchema),
-    defaultValues: {},
-  });
+  })
 
-  const submitMutation = useMutation({
-    mutationFn: (data: Inputs) => registerUser(data.email, data.password),
-    onSuccess: async (res, variables) => {
-      if (res) {
-        // emailVerifiedMutation.mutate({ user: res });
-        console.log(res);
-      }
-      // Invalidate and refetch
-    },
-    onError: (error: AuthError, variables) => {
-      const errorCode = error.code;
-      if (errorCode == AuthErrorCodes.USER_DELETED) {
-        // user is not signed In
-        // registerUser(variables.email, variables.password);
-      } else if (errorCode == AuthErrorCodes.INVALID_PASSWORD) {
-        // passowrd invalid
-        toast.error("Invalid Credential");
-        setForgetPass(true);
-      } else {
-        const errorMessage = error.message;
-        toast.error(`${errorCode} ${errorMessage}`);
-        console.log(error);
-      }
-    },
-  });
-
-  const emailVerifiedMutation = useMutation({
-    mutationFn: ({ user }: { user: User }) => sendEmailVerification(user),
-    onSuccess(data, variables, context) {
-      toast.success("email sent");
-    },
-    onError(error: AuthError, variables, context) {
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      toast.error(errorMessage);
-      console.log(error);
-    },
-  });
-
-  const resetPasswordMutation = useMutation({
-    mutationFn: ({ email }: { email: string }) => resetPassword(email),
-    onSuccess(data, variables, context) {
-      toast.success("email sent");
-    },
-    onError(error: AuthError, variables, context) {
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      toast.error(errorMessage);
-      console.log(error);
-    },
-  });
-
-  const onSubmit: SubmitHandler<Inputs> = (data) => {
-    submitMutation.mutate(data);
-  };
-
-  async function registerUser(email: string, password: string) {
-    if (password !== confirmPass) {
-      alert("Password not matched");
-      return;
-    }
-    try {
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      const user = cred.user;
+  const registerMutation = useMutation({
+    mutationFn: async (data: FormInputs) => {
+      const cred = await createUserWithEmailAndPassword(auth, data.email, data.password)
+      const user = cred.user
       if (!user.emailVerified) {
-        emailVerifiedMutation.mutate({ user: user });
+        await sendEmailVerification(user)
       }
-      console.log(user);
-      return user;
-    } catch (error: unknown) {
-      const err = error as AuthError;
-      if (err.code == AuthErrorCodes.EMAIL_EXISTS) {
-        toast.error("Email already exists");
+      return user
+    },
+    onSuccess: (user) => {
+      toast.success("Account created! Please check your email to verify.")
+      setEmailSent(true)
+      reset()
+      // Optionally navigate back to login after successful signup
+      setTimeout(() => {
+        onSuccess?.()
+      }, 2000)
+    },
+    onError: (error: AuthError) => {
+      if (error.code === AuthErrorCodes.EMAIL_EXISTS) {
+        toast.error("An account with this email already exists")
       } else {
-        const errorMessage = err.message;
-        toast.error(errorMessage);
-        console.log(err);
+        toast.error(error.message)
       }
-    }
-  }
+    },
+  })
 
-  function resetPassword(email: string) {
-    return sendPasswordResetEmail(auth, email);
+  const onSubmit: SubmitHandler<FormInputs> = (data) => {
+    registerMutation.mutate(data)
   }
 
   return (
-    <form
-      className="flex w-full flex-col gap-2 rounded-lg "
-      onSubmit={handleSubmit(onSubmit)}
-    >
-      <label className="form-control w-full ">
-        <input
+    <form className="flex w-full flex-col gap-3" onSubmit={handleSubmit(onSubmit)}>
+      <div className="space-y-1">
+        <Input
           type="email"
-          disabled={submitMutation.isLoading}
+          disabled={registerMutation.isLoading}
           required
-          {...register("email", { required: true })}
+          {...register("email")}
           placeholder="Email"
-          className="input input-bordered w-full "
+          className="w-full"
         />
-        {errors.email && (
-          <div className="label">
-            <span className="label-text-alt">{errors.email.message}</span>
-          </div>
-        )}
-      </label>
-      <label className="form-control w-full max-w-md">
-        <input
-          disabled={submitMutation.isLoading}
+        {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+      </div>
+
+      <div className="space-y-1">
+        <Input
+          type="password"
+          disabled={registerMutation.isLoading}
           required
           {...register("password")}
-          type="password"
           placeholder="Password"
-          className="input input-bordered w-full "
+          className="w-full"
         />
-        {(errors.password ?? forgetPassword) && (
-          <div className="label">
-            {errors.password && (
-              <span className="label-text-alt">{errors.password.message}</span>
-            )}
-          </div>
-        )}
-      </label>
+        {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
+      </div>
 
-      <label className="form-control w-full max-w-md">
-        <input
-          disabled={submitMutation.isLoading}
-          required
-          onChange={(e) => setConfirmPass(e.target.value)}
+      <div className="space-y-1">
+        <Input
           type="password"
+          disabled={registerMutation.isLoading}
+          required
+          {...register("confirmPassword")}
           placeholder="Confirm Password"
-          className="input input-bordered w-full "
+          className="w-full"
         />
-      </label>
-      {emailVerifiedMutation.isSuccess && (
-        <div className="label">
-          <span className="label-text-alt">Email sent. verify email</span>
-        </div>
-      )}
+        {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>}
+      </div>
 
-      <Button disabled={submitMutation.isLoading} type="submit">
-        {submitMutation.isLoading && (
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        )}
-        Sign up
+      {emailSent && <p className="text-sm text-green-600">Verification email sent! Please check your inbox.</p>}
+
+      <Button disabled={registerMutation.isLoading} type="submit" className="w-full">
+        {registerMutation.isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        Create Account
       </Button>
     </form>
-  );
+  )
 }
-
-export default SignUP;
