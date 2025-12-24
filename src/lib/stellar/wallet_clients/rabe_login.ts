@@ -9,6 +9,7 @@ import { WalleteNextLogin } from "~/utils/next-login";
 import { WalletType } from "../../../lib/enums";
 import { addrShort, checkPubkey } from "../../../lib/utils";
 import { submitSignedXDRToServer } from "../utils";
+import { formatErrorForLogging, parseStellarError, StellarTransactionError } from "../../error-handler";
 
 interface ConnectResult {
   publicKey: string;
@@ -124,8 +125,16 @@ export async function rabetXdrSingXdrAndSubmit(xdr: string, pubKey: string) {
   const signed_xdr = await rabetXdrSingXdr(xdr, pubKey);
 
   if (signed_xdr) {
-    const res = await submitSignedXDRToServer(signed_xdr);
-    return res.successful;
+    try {
+      await submitSignedXDRToServer(signed_xdr);
+    }
+    catch (e) {
+      const parsedError = parseStellarError(e);
+      console.error("Transaction Error:", formatErrorForLogging(e));
+      throw new StellarTransactionError(parsedError);
+    }
+
+
   }
 
   return false;

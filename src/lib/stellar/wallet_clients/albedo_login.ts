@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import { AlbedoNextLogin } from "~/utils/next-login";
 import { WalletType } from "../../enums";
 import { addrShort, checkPubkey } from "../../utils";
+import { formatErrorForLogging, parseStellarError, StellarTransactionError } from "../../error-handler";
 
 export async function albedoLogin() {
   const token = Math.random().toString(36).substring(2, 12);
@@ -76,17 +77,11 @@ export async function albedoSignTrx(xdr: string, customer: string) {
       network: "public",
       submit: true,
     })
-    .then((res) => {
-      console.info(res);
 
-      // if (resB.horizonResult.successful !== undefined){
-      //   return resB.horizonResult.successful as boolean
-      // }
-      return true;
-    })
     .catch((e) => {
-      console.info("payment refected", e);
-      return false;
+      const parsedError = parseStellarError(e);
+      console.error("Transaction Error:", formatErrorForLogging(e));
+      throw new StellarTransactionError(parsedError);
     });
 }
 
@@ -98,16 +93,10 @@ export async function albedoSignTrxInTestNet(xdr: string, customer: string) {
       network: "testnet",
       submit: true,
     })
-    .then((res) => {
-      console.info(res);
 
-      // if (resB.horizonResult.successful !== undefined){
-      //   return resB.horizonResult.successful as boolean
-      // }
-      return true;
-    })
     .catch((e) => {
-      console.info("payment refected", e);
-      return false;
+      const parsedError = parseStellarError(e);
+      console.error("Transaction Error:", formatErrorForLogging(e));
+      throw new StellarTransactionError(parsedError);
     });
 }

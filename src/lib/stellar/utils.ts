@@ -31,6 +31,7 @@ import {
 import axios from "axios";
 import { STELLAR_URL, networkPassphrase } from "./constant";
 import toast from "react-hot-toast";
+import { formatErrorForLogging, parseStellarError, StellarTransactionError } from "../error-handler";
 
 export const recursiveTransactionSubmitter = async (
   transaction: Transaction<Memo<MemoType>, Operation[]>,
@@ -39,21 +40,12 @@ export const recursiveTransactionSubmitter = async (
   try {
     const server = new Horizon.Server(STELLAR_URL);
 
-    result = await server.submitTransaction(transaction);
-    return result;
-  } catch (error: any) {
-    console.info(error);
-    if (error.response) {
-      console.info(error.response.data.extras);
-      if (error.response.status === 504) {
-        return recursiveTransactionSubmitter(transaction);
-      } else if (error.response.status === 400) {
-        console.info(error);
-        throw "bad seq happened";
-      }
-    }
+    return await server.submitTransaction(transaction);
 
-    throw "other error happens";
+  } catch (error: any) {
+    const parsedError = parseStellarError(error);
+    console.error("Transaction Error:", formatErrorForLogging(error));
+    throw new StellarTransactionError(parsedError);
   }
 };
 

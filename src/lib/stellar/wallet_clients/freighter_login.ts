@@ -5,6 +5,7 @@ import { WalleteNextLogin } from "~/utils/next-login";
 import { WalletType } from "../../../lib/enums";
 import { addrShort, checkPubkey } from "../../../lib/utils";
 import { submitSignedXDRToServer } from "../utils";
+import { formatErrorForLogging, parseStellarError, StellarTransactionError } from "../../error-handler";
 
 const network = process.env.NEXT_PUBLIC_STELLAR_PUBNET ? "PUBLIC" : "TESTNET";
 
@@ -93,10 +94,11 @@ export const freighterSignTrx = async (xdr: string, signWith: string) => {
       network,
       accountToSign: signWith,
     });
-    const res = await submitSignedXDRToServer(signedXDR);
-    return res.successful;
+    return await submitSignedXDRToServer(signedXDR);
+
   } catch (e) {
-    console.info("freighter error", e);
-    return false;
+    const parsedError = parseStellarError(e);
+    console.error("Transaction Error:", formatErrorForLogging(e));
+    throw new StellarTransactionError(parsedError);
   }
 };
