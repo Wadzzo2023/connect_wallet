@@ -37,8 +37,7 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 
 import { Dialog, DialogContent, DialogTitle } from "../shadcn/ui/dialog";
-import SignUP from "./sign_up";
-import Loading from "~/components/common/loading";
+
 import SignUpForm from "./sign_up";
 import LoginForm from "./login";
 import ForgotPasswordForm from "./forget-password";
