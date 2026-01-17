@@ -9,6 +9,7 @@ import { auth } from "../../../lib/firebase/firebase-auth";
 import { USER_ACCOUNT_URL } from "../constant";
 import { getPublicKeyAPISchema } from "./type";
 import { submitActiveAcountXdr } from "./utils";
+import { env } from "~/env";
 
 export async function appleLogin() {
   const provider = new OAuthProvider("apple.com");
@@ -39,11 +40,12 @@ export async function appleLogin() {
       // await auth.signOut();
       if (loginRes?.ok) {
         if (loginRes?.ok) toast.success("Login Successfully");
-        const res = await toast.promise(
+        await toast.promise(
           axios.get(USER_ACCOUNT_URL, {
             params: {
               uid: user.uid,
               email,
+              from: env.NEXT_PUBLIC_ASSET_CODE
             },
           }),
           {
@@ -53,9 +55,7 @@ export async function appleLogin() {
           },
         );
 
-        const { extra } = await getPublicKeyAPISchema.parseAsync(res.data);
 
-        await submitActiveAcountXdr(extra);
       }
     } else {
       toast.error("Please share you email with us. without we can't proceed");
