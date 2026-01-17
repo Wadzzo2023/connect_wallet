@@ -21,8 +21,6 @@ import { z } from "zod";
 import { AuthCredentialType } from "~/types/auth";
 import { WalletType } from "../lib/enums";
 import { auth } from "../lib/firebase/firebase-auth";
-import { USER_ACCOUNT_XDR_URL } from "../lib/stellar/constant";
-import { submitSignedXDRToServer4UserPubnet } from "../lib/stellar/trx/payment_fb_g";
 import { Button } from "../shadcn/ui/button";
 import { handleFireBaseAuthError } from "./firebase-error";
 import { Input } from "~/components/shadcn/ui/input";
@@ -60,31 +58,6 @@ export default function LoginForm() {
     onSuccess: async (res, variables) => {
       if (res?.ok) {
         toast.success("Successfully logged in")
-
-        const xdrRes = await toast.promise(
-          axios.get(USER_ACCOUNT_XDR_URL, {
-            params: { email: variables.email },
-          }),
-          {
-            loading: "Getting public key...",
-            success: "Received public key",
-            error: "Unable to get xdr",
-          },
-        )
-
-        const xdr = xdrRes.data.xdr as string
-        if (xdr) {
-          const activateRes = await toast.promise(submitSignedXDRToServer4UserPubnet(xdr), {
-            loading: "Activating account...",
-            success: "Request completed successfully",
-            error: "Error activating account, try again later",
-          })
-          if (activateRes) {
-            toast.success("Account activated")
-          } else {
-            toast.error("Account activation failed")
-          }
-        }
       }
 
       if (res?.error) {
