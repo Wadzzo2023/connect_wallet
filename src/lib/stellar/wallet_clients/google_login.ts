@@ -9,6 +9,7 @@ import { auth } from "../../../lib/firebase/firebase-auth";
 import { USER_ACCOUNT_URL } from "../constant";
 import { getPublicKeyAPISchema } from "./type";
 import { submitActiveAcountXdr } from "./utils";
+import { env } from "~/env";
 
 export async function googleLogin() {
   const provider = new GoogleAuthProvider();
@@ -42,6 +43,8 @@ export async function googleLogin() {
             params: {
               uid: user.uid,
               email,
+              from: env.NEXT_PUBLIC_ASSET_CODE
+
             },
           }),
           {
@@ -51,11 +54,6 @@ export async function googleLogin() {
           },
         );
 
-        const { publicKey, extra } = await getPublicKeyAPISchema.parseAsync(
-          res.data,
-        );
-
-        await submitActiveAcountXdr(extra);
       }
     } else {
       toast.error("Email dont exist");

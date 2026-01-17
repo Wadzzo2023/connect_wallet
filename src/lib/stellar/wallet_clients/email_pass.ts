@@ -8,6 +8,7 @@ import { submitActiveAcountXdr } from "./utils";
 import { USER_ACCOUNT_URL } from "../constant";
 import NextLogin from "./next-login";
 import { getPublicKeyAPISchema } from "./type";
+import { env } from "~/env";
 
 export async function emailPassLogin(walletState: ConnectWalletStateModel) {
   const user = auth.currentUser;
@@ -21,6 +22,8 @@ export async function emailPassLogin(walletState: ConnectWalletStateModel) {
           params: {
             uid,
             email,
+            from: env.NEXT_PUBLIC_ASSET_CODE
+
           },
         }),
         {
@@ -33,7 +36,6 @@ export async function emailPassLogin(walletState: ConnectWalletStateModel) {
       const { publicKey, extra } = await getPublicKeyAPISchema.parseAsync(
         res.data,
       );
-      await submitActiveAcountXdr(extra);
 
       await NextLogin(publicKey, publicKey);
       walletState.setUserData(
