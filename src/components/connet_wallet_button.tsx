@@ -11,16 +11,16 @@ export default function ConnectWalletButton({ text }: { text?: string }) {
 
   const setDialog = useDialogStore();
   return (
-    <div className="flex items-center gap-2  ">
+    <div className="flex items-center gap-2 ">
       <Button
-        size='lg'
+
         onClick={() => setDialog.setIsOpen(true)} className=" p-2 shadow-sm shadow-black">
-        <div className="flex items-center gap-2 ">
+        <div className="flex items-center gap-2  w-full p-2 ">
 
           <Image
             alt="logo"
 
-            src={session.data?.user.image || "/favicon.ico"}
+            src={session.data?.user.image ?? "/favicon.ico"}
             height={200}
             width={200}
             className="rounded-full h-8 w-8 border-2"
@@ -33,7 +33,7 @@ export default function ConnectWalletButton({ text }: { text?: string }) {
                   {session.data?.user.name}
                 </p>
                 <p>
-                  PUBKEY : {addrShort(session.data?.user.id)}
+                  {addrShort(session.data?.user.id)}
                 </p>
               </span>
               : "Login/Signup"}
