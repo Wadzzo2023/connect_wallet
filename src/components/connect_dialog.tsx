@@ -324,7 +324,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
             </div>
 
             <Tabs defaultValue="action">
-              <TabsList className="mb-5 grid grid-cols-2 bg-black dark:bg-white">
+              <TabsList className="mb-5 grid grid-cols-2 ">
                 <TabsTrigger value="action">Action Login</TabsTrigger>
                 <TabsTrigger value="stellar">Stellar Login</TabsTrigger>
               </TabsList>
