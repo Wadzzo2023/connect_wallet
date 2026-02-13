@@ -9,9 +9,10 @@ import {
 import { ArrowLeft, ArrowUpCircle, BadgeX, QrCodeIcon, RefreshCcw } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import CopyToClipboard from "react-copy-to-clipboard";
+import useNeedSign from "~/lib/hook";
 
 import { WalletType } from "../lib/enums";
-import { checkStellarAccountActivity } from "../lib/stellar/utils";
+import { checkStellarAccountActivity, clientsign } from "../lib/stellar/utils";
 import { albedoLogin } from "../lib/stellar/wallet_clients/albedo_login";
 import { appleLogin } from "../lib/stellar/wallet_clients/apple_login";
 import { freighterLogin } from "../lib/stellar/wallet_clients/freighter_login";
@@ -42,6 +43,9 @@ import Loading from "~/components/common/loading";
 import SignUpForm from "./sign_up";
 import LoginForm from "./login";
 import ForgotPasswordForm from "./forget-password";
+import { api } from "~/utils/api";
+import { clientSelect } from "~/lib/stellar/fan/utils";
+import { PLATFORM_ASSET } from "../lib/stellar/constant";
 type AuthView = "login" | "signup" | "forgot-password"
 
 interface ConnectDialogProps {
@@ -52,6 +56,8 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
   const [isAccountActivate, setAccountActivate] = useState(false)
   const [isAccountActivateLoading, setAccountActivateLoading] = useState(false)
   const router = useRouter()
+  const { needSign } = useNeedSign();
+
   const dialogModalState = useDialogStore()
   const [selectedWallet, setSelectedWallet] = useState(WalletType.none)
   const isIosFBuser = useFacebookiOSUserAgent()
@@ -93,6 +99,54 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
   const handleClose = () => {
     dialogModalState.setIsOpen(false)
   }
+  const {
+    data: hasTrustLineOnPlatformAsset,
+    isLoading: checkingPlatformLoading,
+    refetch: refetchTrustLine,
+  } = api.walletBalance.wallBalance.checkingPlatformTrustLine.useQuery(
+    undefined,
+    {
+      enabled: !!session.data?.user && isAccountActivate,
+      refetchOnWindowFocus: false,
+    },
+  );
+  const AddTrustMutation =
+    api.walletBalance.wallBalance.addTrustLine.useMutation({
+      onSuccess: async (data) => {
+        console.log("Trustline added successfully", data);
+        try {
+          const clientResponse = await clientsign({
+            walletType: session?.data?.user?.walletType,
+            presignedxdr: data.xdr,
+            pubkey: data.pubKey,
+            test: clientSelect(),
+          });
+
+          if (clientResponse) {
+            toast.success("Added trustline successfully")
+          } else {
+            toast.error("No Data Found at TrustLine Operation");
+          }
+        } catch (error: unknown) {
+          console.error("Error in test transaction", error)
+
+          const err = error as {
+            message?: string
+            details?: string
+            errorCode?: string
+          }
+
+          toast.error(`Error Code : ${err?.errorCode ?? "unknown"}`)
+
+        } finally {
+          setLoading(false);
+        }
+      },
+      onError: (error) => {
+        setLoading(false);
+        toast.error(error.message);
+      },
+    });
 
   // Reset to login view when dialog opens
   useEffect(() => {
@@ -100,6 +154,23 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
       setAuthView("login")
     }
   }, [dialogModalState.isOpen])
+  // Automatically add trust line when account becomes activated
+  useEffect(() => {
+    if (
+      isAccountActivate &&
+      !isAccountActivateLoading &&
+      session.data?.user &&
+      !AddTrustMutation.isLoading &&
+      hasTrustLineOnPlatformAsset === false
+    ) {
+
+      AddTrustMutation.mutate({
+        asset_code: PLATFORM_ASSET.code,
+        asset_issuer: PLATFORM_ASSET.issuer,
+        signWith: needSign(),
+      });
+    }
+  }, [isAccountActivate, isAccountActivateLoading]);
 
   function DisconnectButton() {
     if (session.status === "authenticated") {
