@@ -24,6 +24,7 @@ import { auth } from "../lib/firebase/firebase-auth";
 import { Button } from "../shadcn/ui/button";
 import { handleFireBaseAuthError } from "./firebase-error";
 import { Input } from "~/components/shadcn/ui/input";
+import { useDialogStore } from "../state/connect_wallet_dialog";
 
 const formSchema = z.object({
   email: z.string().email("Please enter a valid email"),
@@ -33,6 +34,7 @@ const formSchema = z.object({
 type FormInputs = z.infer<typeof formSchema>
 
 export default function LoginForm() {
+  const { setIsOpen } = useDialogStore()
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [verifyEmail, setVerifyEmail] = useState(false)
   const session = useSession()
@@ -56,6 +58,8 @@ export default function LoginForm() {
   const loginMutation = useMutation({
     mutationFn: (data: FormInputs) => loginUser(data.email, data.password),
     onSuccess: async (res, variables) => {
+      setIsOpen(false)
+
       if (res?.ok) {
         toast.success("Successfully logged in")
       }
@@ -81,6 +85,7 @@ export default function LoginForm() {
 
   async function loginUser(email: string, password: string) {
     await auth.signOut()
+
     return await signIn("credentials", {
       redirect: false,
       password,

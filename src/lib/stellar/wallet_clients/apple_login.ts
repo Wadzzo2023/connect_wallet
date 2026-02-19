@@ -55,7 +55,7 @@ export async function appleLogin() {
           },
         );
 
-
+        return { ok: true }
       }
     } else {
       toast.error("Please share you email with us. without we can't proceed");

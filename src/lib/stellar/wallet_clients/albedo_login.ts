@@ -39,6 +39,7 @@ export async function albedoLogin() {
 
   if (res?.ok) {
     toast.success("Public Key : " + addrShort(userData.pubkey, 10));
+    return { ok: true }
   }
   if (res?.error) toast.error(res.error);
 }

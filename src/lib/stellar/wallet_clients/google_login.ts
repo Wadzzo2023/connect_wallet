@@ -37,7 +37,7 @@ export async function googleLogin() {
 
       // await auth.signOut();
       if (loginRes?.ok) {
-        if (loginRes?.ok) toast.success("Login Successfully");
+        toast.success("Login Successfully");
         const res = await toast.promise(
           axios.get(USER_ACCOUNT_URL, {
             params: {
@@ -53,7 +53,7 @@ export async function googleLogin() {
             error: "Unable to get public key",
           },
         );
-
+        return { ok: true }
       }
     } else {
       toast.error("Email dont exist");

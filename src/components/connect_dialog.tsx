@@ -250,12 +250,18 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
   }
 
   function AllButtons() {
+    const { setIsOpen } = useDialogStore()
     return (
       <div className="flex flex-col gap-2">
         <IconButton
           toolTips={toolTipsAddr(WalletType.apple)}
           isSelected={selectedWallet === WalletType.apple}
-          onClick={() => void appleLogin()}
+          onClick={async () => {
+            const res = await appleLogin()
+            if (res?.ok) {
+              setIsOpen(false)
+            }
+          }}
           className="inline-flex items-center rounded-lg bg-[#050708] px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-[#050708]/90"
           icon={
             <svg className="mr-2 h-5 w-5" viewBox="0 0 384 512" fill="currentColor">
@@ -267,7 +273,13 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
         <IconButton
           toolTips={toolTipsAddr(WalletType.google)}
           isSelected={selectedWallet === WalletType.google}
-          onClick={() => void googleLogin()}
+          onClick={async () => {
+            const res = await googleLogin()
+            if (res?.ok) {
+              setIsOpen(false)
+            }
+
+          }}
           className="inline-flex items-center rounded-lg bg-[#4285F4] px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-[#4285F4]/90"
           icon={
             <svg className="mr-2 h-4 w-4" viewBox="0 0 18 19" fill="currentColor">
@@ -359,6 +371,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
   }
 
   function WalletLogin({ authUser }: { authUser: boolean }) {
+    const { setIsOpen } = useDialogStore()
     return (
       <DialogContent
         onInteractOutside={(e) => e.preventDefault()}
@@ -424,7 +437,12 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                     className="mb-2 me-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
                     toolTips={toolTipsAddr(WalletType.albedo)}
                     isSelected={selectedWallet === WalletType.albedo}
-                    onClick={() => void albedoLogin()}
+                    onClick={async () => {
+                      const res = await albedoLogin()
+                      if (res?.ok) {
+                        setIsOpen(false)
+                      }
+                    }}
                     imageUrl="/images/wallets/albedo.svg"
                     text="Albedo"
                   />
