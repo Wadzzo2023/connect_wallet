@@ -428,7 +428,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
           <WalletLogin authUser={true} />
         ) : (
           <DialogContent
-            onInteractOutside={(e) => e.preventDefault()}
+            // onInteractOutside={(e) => e.preventDefault()}
             className="grid h-1/2 min-h-[600px] grid-cols-1 justify-center md:h-fit"
           >
             <div className="flex flex-col items-center justify-between">
