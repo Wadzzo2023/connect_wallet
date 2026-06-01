@@ -290,7 +290,6 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
   function WalletLogin({ authUser }: { authUser: boolean }) {
     return (
       <DialogContent
-        onInteractOutside={(e) => e.preventDefault()}
         className="flex min-h-[65vh] min-w-[40vw] grid-cols-1 items-start justify-center overflow-y-auto p-2 lg:grid lg:grid-cols-3"
       >
         <div className="h-full w-full bg-gray-100 p-5 dark:bg-gray-900 md:p-10 lg:col-span-2">
