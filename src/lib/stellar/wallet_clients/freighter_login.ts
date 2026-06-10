@@ -7,8 +7,8 @@ import { addrShort, checkPubkey } from "../../../lib/utils";
 import { submitSignedXDRToServer } from "../utils";
 import { formatErrorForLogging, parseStellarError, StellarTransactionError } from "../../error-handler";
 
-const network = process.env.NEXT_PUBLIC_STELLAR_PUBNET ? "PUBLIC" : "TESTNET";
-
+// Freighter requires "PUBLIC" or "TESTNET" — NOT the full passphrase string
+const network = process.env.NEXT_PUBLIC_STELLAR_PUBNET === "true" ? "PUBLIC" : "TESTNET";
 export async function freighterLogin() {
   let pubkey: string;
   const freighterConnected = await freighter.isConnected();

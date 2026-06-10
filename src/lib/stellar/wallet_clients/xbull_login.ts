@@ -1,76 +1,101 @@
+import { xBullWalletConnect } from "@creit.tech/xbull-wallet-connect";
+import toast from "react-hot-toast";
 
-// /* eslint-disable @typescript-eslint/no-unsafe-return */
-// /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-// import { xBullWalletConnect } from '@creit-tech/xbull-wallet-connect';
-// import toast from "react-hot-toast";
+import { WalleteNextLogin } from "~/utils/next-login";
+import { WalletType } from "../../../lib/enums";
+import { addrShort, checkPubkey } from "../../../lib/utils";
+import { networkPassphrase } from "../constant";
+import { submitSignedXDRToServer } from "../utils";
+import { formatErrorForLogging, parseStellarError, StellarTransactionError } from "../../error-handler";
 
-// import { WalletType } from "../../../lib/enums";
-// import type { ConnectWalletStateModel } from "../../../state/connect_wallet_state";
-// import { checkPubkey, addrShort } from "../../../lib/utils";
-// import { submitSignedXDRToServer } from "../utils";
-// import NextLogin from "./next-login";
+// xBull extension expects the full network passphrase string, not "PUBLIC"/"TESTNET"
+// networkPassphrase from constant.ts is e.g. "Public Global Stellar Network ; September 2015"
+const xbullNetworkPassphrase = networkPassphrase;
 
-// export async function xbullLogin(walletState: ConnectWalletStateModel) {
-//     let pubkey: string;
-//     try {
-//         const bridge = new xBullWalletConnect({ preferredTarget: "extension" });
-//         pubkey = await bridge.connect();
-//         console.info(pubkey, "xbull Pub key");
-//         console.info(pubkey, "xbull Pub key");
-//         bridge.closeConnections();
-//     } catch (e) {
-//         toast.error(
-//             "Login failed. Please try to login again after refreshing the page.: maybe xbullLogin extension is not installed. Install xbullLogin and try again",
-//         );
-//         return;
-//     }
+export async function xbullLogin() {
+  let pubkey: string;
+  const bridge = new xBullWalletConnect({ preferredTarget: "extension" });
 
-//     if (checkPubkey(pubkey)) {
-//         toast.error(
-//             "Login failed. Please try to login again after refreshing the page.",
-//         );
-//         return;
-//     }
+  try {
+    pubkey = await bridge.connect();
+  } catch (e) {
+    console.error("xBull connect error:", e);
+    toast.error("xBull extension is not installed or connection was rejected.");
+    return;
+  } finally {
+    bridge.closeConnections();
+  }
 
-//     await NextLogin(pubkey, pubkey);
-//     walletState.setUserData(pubkey, true, WalletType.xBull);
-//     toast.success("Public Key : " + addrShort(pubkey, 10));
-// }
+  if (checkPubkey(pubkey)) {
+    toast.error("Login failed. Please try again after refreshing the page.");
+    return;
+  }
 
-// export async function xbullSignXdr(xdr: string, publicKey: string) {
-//     const network =
-//         process.env.NEXT_PUBLIC_NETWORK === "0" ? "TESTNET" : "public";
-//     let bridge: xBullWalletConnect;
-//     try {
-//         bridge = new xBullWalletConnect({ preferredTarget: "extension" });
-//         const signedXDR = await bridge.sign({
-//             xdr: xdr,
-//             publicKey: publicKey,
-//             network: network,
-//         });
-//         bridge.closeConnections();
-//         return signedXDR;
-//     } catch (e) {
-//         console.error(e);
-//         return false;
-//     }
-// }
+  const xdrRes = await toast.promise(fetch("/api/xdr?pubkey=" + pubkey), {
+    error: "Error fetching XDR",
+    loading: "Fetching XDR",
+    success: "XDR fetched",
+  });
 
-// export async function xbullXdrSingXdrAndSubmit(xdr: string, publicKey: string) {
-//     const network =
-//         process.env.NEXT_PUBLIC_NETWORK === "0" ? "TESTNET" : "public";
-//     let bridge: xBullWalletConnect;
-//     try {
-//         bridge = new xBullWalletConnect({ preferredTarget: "extension" });
-//         const signedXDR: string = await bridge.sign({
-//             xdr: xdr,
-//             publicKey: publicKey,
-//             network: network,
-//         });
-//         const res = await submitSignedXDRToServer(signedXDR);
-//         bridge.closeConnections();
-//         return res.successful;
-//     } catch (e) {
-//         return false;
-//     }
-// }
+  if (!xdrRes.ok) return;
+
+  const data = (await xdrRes.json()) as { xdr: string };
+
+  let signedXDR: string;
+  const signBridge = new xBullWalletConnect({ preferredTarget: "extension" });
+  try {
+    signedXDR = await signBridge.sign({
+      xdr: data.xdr,
+      publicKey: pubkey,
+      network: xbullNetworkPassphrase,
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("xBull sign error:", e);
+    toast.error(`Signing failed: ${msg}`);
+    return;
+  } finally {
+    signBridge.closeConnections();
+  }
+
+  const loginRes = await WalleteNextLogin({
+    pubkey,
+    signedXDR,
+    walletType: WalletType.xBull,
+  });
+
+  if (loginRes?.ok) {
+    toast.success("Login successful");
+    toast.success("Public Key: " + addrShort(pubkey, 10));
+  }
+
+  if (loginRes?.error) {
+    toast.error(loginRes.error);
+  }
+}
+
+export async function xbullSignXdr(xdr: string, publicKey: string): Promise<string | undefined> {
+  const bridge = new xBullWalletConnect({ preferredTarget: "extension" });
+  try {
+    return await bridge.sign({ xdr, publicKey, network: xbullNetworkPassphrase });
+  } catch (e) {
+    console.error("xBull sign error:", e);
+    return undefined;
+  } finally {
+    bridge.closeConnections();
+  }
+}
+
+export async function xbullSignAndSubmitXdr(xdr: string, publicKey: string) {
+  const signedXDR = await xbullSignXdr(xdr, publicKey);
+
+  if (!signedXDR) return false;
+
+  try {
+    return await submitSignedXDRToServer(signedXDR);
+  } catch (e) {
+    const parsedError = parseStellarError(e);
+    console.error("Transaction Error:", formatErrorForLogging(e));
+    throw new StellarTransactionError(parsedError);
+  }
+}
