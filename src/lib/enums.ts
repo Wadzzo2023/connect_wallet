@@ -12,4 +12,5 @@ export enum WalletType {
   apple = "apple",
   metamask = "metamask",
   hana = "hana",
+  hotWallet = "hotWallet",
 }

@@ -22,6 +22,7 @@ import { rabetXdrSingXdrAndSubmit } from "./wallet_clients/rabe_login";
 import { metamaskSignAndSubmitXdr } from "./wallet_clients/metamask_login";
 import { xbullSignAndSubmitXdr } from "./wallet_clients/xbull_login";
 import { hanaSignAndSubmitXdr } from "./wallet_clients/hana_login";
+import { hotWalletSignAndSubmitXdr } from "./wallet_clients/hot_wallet_login";
 import {
   walletConnectSignTransaction,
   walletConnectSignTransactionSubmitterWrapper,
@@ -102,6 +103,9 @@ export async function clientsign(props: {
     else if (props.walletType == WalletType.hana) {
       return await hanaSignAndSubmitXdr(props.presignedxdr, props.pubkey);
     }
+    else if (props.walletType == WalletType.hotWallet) {
+      return await hotWalletSignAndSubmitXdr(props.presignedxdr, props.pubkey);
+    }
     else if (props.walletType == WalletType.frieghter) {
       return await freighterSignTrx(props.presignedxdr, props.pubkey);
     }
@@ -124,6 +128,8 @@ export async function clientsign(props: {
       return await xbullSignAndSubmitXdr(props.presignedxdr, props.pubkey);
     case WalletType.hana:
       return await hanaSignAndSubmitXdr(props.presignedxdr, props.pubkey);
+    case WalletType.hotWallet:
+      return await hotWalletSignAndSubmitXdr(props.presignedxdr, props.pubkey);
     case WalletType.walletConnect:
       return await walletConnectSignTransactionSubmitterWrapper(
         props.presignedxdr,

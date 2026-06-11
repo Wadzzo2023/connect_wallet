@@ -5,9 +5,7 @@ import { WalletType } from "../../../lib/enums";
 import { addrShort, checkPubkey } from "../../../lib/utils";
 import { submitSignedXDRToServer } from "../utils";
 import { formatErrorForLogging, parseStellarError, StellarTransactionError } from "../../error-handler";
-
-
-const networkPassphrase = process.env.NEXT_PUBLIC_STELLAR_PUBNET === "true" ? "mainnet" : "testnet";
+import { networkPassphrase } from "../constant";
 
 declare global {
   interface Window {
@@ -37,6 +35,7 @@ export async function hanaLogin() {
   let pubkey: string;
   try {
     pubkey = await window.hanaWallet!.stellar!.getPublicKey();
+    console.log("Hana getPublicKey result:", pubkey);
   } catch (e) {
     console.error("Hana getPublicKey error:", e);
     toast.error("Failed to get public key from Hana Wallet.");
@@ -47,7 +46,7 @@ export async function hanaLogin() {
     toast.error("Login failed. Please try again after refreshing the page.");
     return;
   }
-
+  console.log("Network Passphrase:", networkPassphrase);
   const xdrRes = await toast.promise(fetch("/api/xdr?pubkey=" + pubkey), {
     error: "Error fetching XDR",
     loading: "Fetching XDR",

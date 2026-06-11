@@ -16,6 +16,7 @@ import { metamaskLogin } from "../lib/stellar/wallet_clients/metamask_login";
 import { rabetLogin } from "../lib/stellar/wallet_clients/rabe_login";
 import { xbullLogin } from "../lib/stellar/wallet_clients/xbull_login";
 import { hanaLogin } from "../lib/stellar/wallet_clients/hana_login";
+import { hotWalletLogin } from "../lib/stellar/wallet_clients/hot_wallet_login";
 import { configureSignClient, walletConnectLogin } from "../lib/stellar/wallet_clients/wallet_connect";
 import { addrShort } from "../lib/utils";
 import { useDialogStore } from "../state/connect_wallet_dialog";
@@ -33,13 +34,14 @@ import ForgotPasswordForm from "./forget-password";
 type AuthView = "login" | "signup" | "forgot-password";
 interface ConnectDialogProps { className: string }
 
-function getWalletLabel(walletType: string): string {
+function getWalletLabel(walletType: WalletType): string {
   switch (walletType) {
     case WalletType.frieghter: return "Stellar · Freighter Wallet";
     case WalletType.rabet: return "Stellar · Rabet Wallet";
     case WalletType.albedo: return "Stellar · Albedo Wallet";
     case WalletType.xBull: return "Stellar · xBull Wallet";
     case WalletType.hana: return "Stellar · Hana Wallet";
+    case WalletType.hotWallet: return "Stellar · HOT Wallet";
     case WalletType.metamask: return "Stellar · MetaMask Wallet";
     case WalletType.walletConnect: return "Stellar · Lobstr Wallet";
     case WalletType.google: return "Action Account · Google";
@@ -383,6 +385,13 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
               </svg>
             }
           />
+          <WalletButton
+            label="HOT Wallet"
+            onClick={() => void hotWalletLogin()}
+            selected={selectedWallet === WalletType.hotWallet}
+            tooltip={toolTipsAddr(WalletType.hotWallet)}
+            imageUrl="https://storage.herewallet.app/logo.png"
+          />
         </div>
 
         <div className="sm:hidden">
@@ -396,9 +405,9 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
     <Dialog open={dialogModalState.isOpen} onOpenChange={handleClose}>
       {/* Not-activated state — compact dialog */}
       {session.status === "authenticated" &&
-      session.data?.user.emailVerified &&
-      !isAccountActivateLoading &&
-      !isAccountActivate ? (
+        session.data?.user.emailVerified &&
+        !isAccountActivateLoading &&
+        !isAccountActivate ? (
         <DialogContent className="max-w-sm rounded-2xl p-6">
           <DialogTitle className="sr-only">Account Status</DialogTitle>
           <NotActivatedUser />
@@ -410,7 +419,10 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
         /* Main two-column dialog — inlined to prevent remounting */
         <DialogContent className="flex max-h-[90vh] max-w-[760px] gap-0 overflow-hidden p-0 lg:grid lg:grid-cols-[1fr_280px]">
           {/* ── Left panel ── */}
-          <div className="flex flex-col gap-5 overflow-y-auto p-6 lg:p-8">
+          <div className={clsx(
+            "flex w-full flex-col gap-5 overflow-y-auto p-6 lg:p-8",
+            authUser ? "h-[85vh]" : "h-[70vh]"
+          )}>
             {/* Unverified email banner */}
             {session.data?.user && !session.data.user.emailVerified && (
               <div className="rounded-xl border bg-secondary/60 p-4">
