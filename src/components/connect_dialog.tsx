@@ -106,20 +106,20 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
   const [loading, setLoading] = useState(false);
 
   const checkAccountActivity = useCallback(async (publicKey: string) => {
-    setAccountActivateLoading(true)
-    const isActive = await checkStellarAccountActivity(publicKey)
-    setAccountActivate(isActive)
-    setAccountActivateLoading(false)
-  }, [])
+    setAccountActivateLoading(true);
+    const isActive = await checkStellarAccountActivity(publicKey);
+    setAccountActivate(isActive);
+    setAccountActivateLoading(false);
+  }, []);
 
   const checkStatus = useCallback(async () => {
-    const user = session.data?.user
+    const user = session.data?.user;
     if (user) {
-      setLoading(true)
-      await checkAccountActivity(user.id)
-      setLoading(false)
+      setLoading(true);
+      await checkAccountActivity(user.id);
+      setLoading(false);
     }
-  }, [checkAccountActivity, session.data?.user])
+  }, [checkAccountActivity, session.data?.user]);
 
   const disconnectWallet = useCallback(async () => {
     await signOut({ redirect: false });
@@ -398,80 +398,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
           <WCButton toolTipsAddr={toolTipsAddr} selectedWallet={selectedWallet} text="Lobstr" />
         </div>
       </div>
-    )
-  }
-
-  function ActionAuthContent() {
-    return (
-      <div className="w-full space-y-4">
-        {authView === "login" && (
-          <>
-            <LoginForm />
-            <div className="flex flex-col items-center gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setAuthView("forgot-password")}
-                className="text-sm text-muted-foreground hover:text-foreground hover:underline transition-colors"
-              >
-                Forgot password?
-              </button>
-              <div className="flex items-center gap-1 text-sm">
-                <span className="text-muted-foreground">Don&apos;t have an account?</span>
-                <button
-                  type="button"
-                  onClick={() => setAuthView("signup")}
-                  className="font-medium  hover:underline"
-                >
-                  Create new account
-                </button>
-              </div>
-            </div>
-          </>
-        )}
-
-        {authView === "signup" && (
-          <>
-            <div className="flex items-center gap-2 mb-4">
-              <button
-                type="button"
-                onClick={() => setAuthView("login")}
-                className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to login
-              </button>
-            </div>
-            <SignUpForm onSuccess={() => setAuthView("login")} />
-          </>
-        )}
-        {authView === "forgot-password" && (
-          <>
-            <div className="flex items-center gap-2 mb-4">
-              <button
-                type="button"
-                onClick={() => setAuthView("login")}
-                className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to login
-              </button>
-            </div>
-            <ForgotPasswordForm />
-          </>
-        )}
-
-
-        <div className="relative my-4">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-          </div>
-        </div>
-        <AllButtons />
-      </div>
-    )
+    );
   }
 
   return (
@@ -573,7 +500,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
           </div>
 
           {/* ── Right panel ── */}
-          <div className="relative hidden flex-col overflow-hidden rounded-r-lg bg-accent lg:flex">
+          <div className="relative hidden flex-col overflow-hidden rounded-r-lg bg-primary/20 lg:flex">
             <div className="p-6 pb-3">
               <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground/60">
                 Scan to connect
