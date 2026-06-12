@@ -417,11 +417,11 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
         </DialogContent>
       ) : (
         /* Main two-column dialog — inlined to prevent remounting */
-        <DialogContent className="flex max-h-[90vh] max-w-[760px] gap-0 overflow-hidden p-0 lg:grid lg:grid-cols-[1fr_280px]">
+        <DialogContent className="flex max-h-[95vh] max-w-[760px] gap-0 overflow-hidden p-0 lg:grid lg:grid-cols-[1fr_280px]">
           {/* ── Left panel ── */}
           <div className={clsx(
             "flex w-full flex-col gap-5 overflow-y-auto p-6 lg:p-8",
-            authUser ? "h-[85vh]" : "h-[70vh]"
+            authUser ? "h-[95vh]" : "h-[80vh]"
           )}>
             {/* Unverified email banner */}
             {session.data?.user && !session.data.user.emailVerified && (
