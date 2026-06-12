@@ -74,7 +74,7 @@ function WalletButton({
           "flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium transition-all duration-150",
           "hover:border-primary/50 hover:bg-muted",
           selected
-            ? "border-primary bg-primary/10 ring-1 ring-primary/30 text-primary"
+            ? "border-primary bg-primary/10 ring-1 ring-primary/30 "
             : "border-border bg-card text-card-foreground",
         )}
       >
@@ -86,7 +86,7 @@ function WalletButton({
           )}
         </span>
         <span className="flex-1 text-left">{label}</span>
-        {selected && <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-primary" />}
+        {selected && <CheckCircle2 className="h-4 w-4 flex-shrink-0 " />}
       </button>
     </div>
   );
@@ -168,13 +168,13 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
     const walletLabel = getWalletLabel(user.walletType ?? "");
     return (
       <div className="flex items-center gap-3 rounded-xl border bg-muted/40 px-4 py-3">
-        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold">
           {initials}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
             <p className="truncate text-sm font-semibold text-foreground">{name}</p>
-            <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0 text-primary" />
+            <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0 " />
           </div>
           <p className="text-xs text-muted-foreground">{walletLabel}</p>
         </div>
@@ -301,7 +301,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
               <button
                 type="button"
                 onClick={() => setAuthView("signup")}
-                className="font-semibold text-primary hover:underline"
+                className="font-semibold  hover:underline"
               >
                 Sign up
               </button>
@@ -500,7 +500,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
           </div>
 
           {/* ── Right panel ── */}
-          <div className="relative hidden flex-col overflow-hidden rounded-r-lg bg-accent lg:flex">
+          <div className="relative hidden flex-col overflow-hidden rounded-r-lg bg-accent/20 lg:flex">
             <div className="p-6 pb-3">
               <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground/60">
                 Scan to connect
@@ -588,7 +588,7 @@ function WCButton({
         className={clsx(
           "flex w-full items-center justify-center gap-2.5 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-150 disabled:opacity-60",
           isSelected
-            ? "border-primary bg-primary/10 ring-1 ring-primary/30 text-primary hover:bg-primary/20"
+            ? "border-primary bg-primary/10 ring-1 ring-primary/30  hover:bg-primary/20"
             : onDark
               ? "border-accent-foreground/30 bg-accent-foreground/10 text-accent-foreground hover:bg-accent-foreground/20"
               : "border-border bg-card text-card-foreground hover:border-primary/50 hover:bg-muted",
@@ -600,7 +600,7 @@ function WCButton({
             {wcLoading && initializing ? "Initializing…" : text}
           </span>
         )}
-        {isSelected && <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-primary" />}
+        {isSelected && <CheckCircle2 className="h-4 w-4 flex-shrink-0 " />}
       </button>
     </div>
   );

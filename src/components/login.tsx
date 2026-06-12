@@ -150,7 +150,7 @@ export default function LoginForm({ onForgotPassword }: LoginFormProps) {
           <button
             type="button"
             onClick={onForgotPassword}
-            className="text-sm font-medium text-primary hover:underline"
+            className="text-sm font-medium  hover:underline"
           >
             Forgot password?
           </button>
