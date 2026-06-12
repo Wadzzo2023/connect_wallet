@@ -10,4 +10,7 @@ export enum WalletType {
   emailPass = "emailPass",
   isAdmin = "isAdmin",
   apple = "apple",
+  metamask = "metamask",
+  hana = "hana",
+  hotWallet = "hotWallet",
 }

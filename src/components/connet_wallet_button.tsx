@@ -23,10 +23,10 @@ export default function ConnectWalletButton({ text }: { text?: string }) {
             src={session.data?.user.image ?? "/favicon.ico"}
             height={200}
             width={200}
-            className="rounded-full h-8 w-8 border-2"
+            className="rounded-full h-8 w-8 border-2 bg-white"
           />
 
-          <span className="text-base-content">
+          <span className="">
             {session.status == "authenticated"
               ? <span className="flex flex-col items-start">
                 <p>

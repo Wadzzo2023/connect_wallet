@@ -12,7 +12,7 @@ import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, Lock, Mail } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
@@ -92,44 +92,57 @@ export default function SignUpForm({ onSuccess }: SignUpFormProps) {
   return (
     <form className="flex w-full flex-col gap-3" onSubmit={handleSubmit(onSubmit)}>
       <div className="space-y-1">
-        <Input
-          type="email"
-          disabled={registerMutation.isLoading}
-          required
-          {...register("email")}
-          placeholder="Email"
-          className="w-full"
-        />
-        {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+        <div className="relative">
+          <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="email"
+            disabled={registerMutation.isLoading}
+            required
+            {...register("email")}
+            placeholder="Email address"
+            className="pl-9"
+          />
+        </div>
+        {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
       </div>
 
       <div className="space-y-1">
-        <Input
-          type="password"
-          disabled={registerMutation.isLoading}
-          required
-          {...register("password")}
-          placeholder="Password"
-          className="w-full"
-        />
-        {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
+        <div className="relative">
+          <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="password"
+            disabled={registerMutation.isLoading}
+            required
+            {...register("password")}
+            placeholder="Password"
+            className="pl-9"
+          />
+        </div>
+        {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
       </div>
 
       <div className="space-y-1">
-        <Input
-          type="password"
-          disabled={registerMutation.isLoading}
-          required
-          {...register("confirmPassword")}
-          placeholder="Confirm Password"
-          className="w-full"
-        />
-        {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>}
+        <div className="relative">
+          <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="password"
+            disabled={registerMutation.isLoading}
+            required
+            {...register("confirmPassword")}
+            placeholder="Confirm password"
+            className="pl-9"
+          />
+        </div>
+        {errors.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword.message}</p>}
       </div>
 
-      {emailSent && <p className="text-sm text-green-600">Verification email sent! Please check your inbox.</p>}
+      {emailSent && (
+        <p className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-950/30 dark:text-green-300">
+          Verification email sent! Check your inbox.
+        </p>
+      )}
 
-      <Button disabled={registerMutation.isLoading} type="submit" className="w-full">
+      <Button disabled={registerMutation.isLoading} type="submit" className="w-full rounded-xl py-2.5">
         {registerMutation.isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         Create Account
       </Button>
