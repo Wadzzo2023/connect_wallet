@@ -421,7 +421,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
           {/* ── Left panel ── */}
           <div className={clsx(
             "flex w-full flex-col gap-5 overflow-y-auto p-6 lg:p-8",
-            authUser ? "h-[85vh]" : "h-[70vh]"
+            authUser ? "h-[95vh]" : "h-[75vh]"
           )}>
             {/* Unverified email banner */}
             {session.data?.user && !session.data.user.emailVerified && (
