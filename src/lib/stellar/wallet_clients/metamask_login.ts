@@ -2,6 +2,7 @@ import toast from "react-hot-toast";
 import { WalleteNextLogin } from "~/utils/next-login";
 import { WalletType } from "../../../lib/enums";
 import { addrShort, checkPubkey } from "../../../lib/utils";
+import { showFundAccountToast } from "./fund_account_toast";
 import { submitSignedXDRToServer } from "../utils";
 import { formatErrorForLogging, parseStellarError, StellarTransactionError } from "../../error-handler";
 
@@ -90,7 +91,7 @@ export async function metamaskLogin() {
     success: "XDR fetched",
   });
   if (!xdrRes.ok) {
-    console.error("[MetaMask] XDR fetch failed — account may not be funded on", isMainnet ? "mainnet" : "testnet");
+    showFundAccountToast(pubkey);
     return;
   }
 
