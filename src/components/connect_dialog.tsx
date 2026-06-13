@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { DocumentDuplicateIcon, SignalSlashIcon } from "@heroicons/react/24/solid";
-import { ArrowLeft, ArrowUpCircle, CheckCircle2, QrCodeIcon, RefreshCcw, Wallet } from "lucide-react";
+import { ArrowLeft, ArrowUpCircle, CheckCircle2, LogOut, QrCodeIcon, RefreshCcw, Wallet } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import CopyToClipboard from "react-copy-to-clipboard";
 import clsx from "clsx";
@@ -71,7 +71,7 @@ function WalletButton({
       <button
         onClick={onClick}
         className={clsx(
-          "flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium transition-all duration-150",
+          "flex w-full items-center gap-2.5 rounded-xl border px-3 py-2 text-sm font-medium transition-all duration-150",
           "hover:border-primary/50 hover:bg-muted",
           selected
             ? "border-primary bg-primary/10 ring-1 ring-primary/30 "
@@ -146,6 +146,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
     }
   }, [dialogModalState.isOpen]);
 
+
   const authUser =
     session.status === "authenticated" &&
     !!session.data?.user.emailVerified &&
@@ -167,22 +168,39 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
     const initials = name.slice(0, 2).toUpperCase();
     const walletLabel = getWalletLabel(user.walletType ?? "");
     return (
-      <div className="flex items-center gap-3 rounded-xl border bg-muted/40 px-4 py-3">
-        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold">
+      <div className="flex items-center gap-2 rounded-xl border bg-muted/40 px-3 py-2">
+        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
           {initials}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
-            <p className="truncate text-sm font-semibold text-foreground">{name}</p>
-            <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0 " />
+          <div className="flex items-center gap-1">
+            <p className="truncate text-xs font-semibold text-foreground sm:text-sm">{name}</p>
+            <CheckCircle2 className="h-3 w-3 flex-shrink-0 text-primary sm:h-3.5 sm:w-3.5" />
           </div>
-          <p className="text-xs text-muted-foreground">{walletLabel}</p>
+          <p className="truncate text-[10px] text-muted-foreground sm:text-xs">{walletLabel}</p>
         </div>
-        <CopyToClipboard text={user.id} onCopy={() => toast.success("Copied!")}>
-          <button className="flex-shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
-            <DocumentDuplicateIcon className="h-4 w-4" />
+        <div className="flex flex-shrink-0 items-center divide-x divide-border overflow-hidden rounded-lg border">
+          <button
+            onClick={() => {
+              void toast.promise(navigator.clipboard.writeText(user.id), {
+                loading: "Copying…",
+                success: "Copied!",
+                error: "Failed to copy",
+              });
+            }}
+            className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:gap-1.5 sm:px-2.5"
+          >
+            <DocumentDuplicateIcon className="h-3.5 w-3.5 flex-shrink-0" />
+            <span className="hidden sm:inline">Copy</span>
           </button>
-        </CopyToClipboard>
+          <button
+            onClick={disconnectWallet}
+            className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 sm:gap-1.5 sm:px-2.5"
+          >
+            <LogOut className="h-3.5 w-3.5 flex-shrink-0" />
+            <span className="hidden sm:inline">Disconnect</span>
+          </button>
+        </div>
       </div>
     );
   }
@@ -341,7 +359,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
   // ── Stellar wallets grid ──
   function StellarTabContent() {
     return (
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2">
         {authUser && (
           <p className="text-xs font-medium text-muted-foreground">Switch wallet</p>
         )}
@@ -392,10 +410,9 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
             tooltip={toolTipsAddr(WalletType.hotWallet)}
             imageUrl="https://storage.herewallet.app/logo.png"
           />
-        </div>
-
-        <div className="sm:hidden">
-          <WCButton toolTipsAddr={toolTipsAddr} selectedWallet={selectedWallet} text="Lobstr" />
+          <div className="lg:hidden">
+            <WCButton toolTipsAddr={toolTipsAddr} selectedWallet={selectedWallet} text="Lobstr" inGrid />
+          </div>
         </div>
       </div>
     );
@@ -417,12 +434,9 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
         </DialogContent>
       ) : (
         /* Main two-column dialog — inlined to prevent remounting */
-        <DialogContent className="flex max-h-[95vh] max-w-[760px] gap-0 overflow-hidden p-0 lg:grid lg:grid-cols-[1fr_280px]">
+        <DialogContent className={clsx("flex max-w-[800px] gap-0 overflow-hidden p-0 lg:grid lg:grid-cols-[1fr_280px]", authUser ? "h-[85vh]" : "h-[80vh]")}>
           {/* ── Left panel ── */}
-          <div className={clsx(
-            "flex w-full flex-col gap-5 overflow-y-auto p-6 lg:p-8",
-            authUser ? "h-[95vh]" : "h-[80vh]"
-          )}>
+          <div className={clsx("flex min-h-0 flex-1 w-full flex-col overflow-y-auto", authUser ? "gap-3 px-4 pb-4 pt-10 sm:p-4 lg:p-5" : "gap-5 p-6 lg:p-8")}>
             {/* Unverified email banner */}
             {session.data?.user && !session.data.user.emailVerified && (
               <div className="rounded-xl border bg-secondary/60 p-4">
@@ -449,7 +463,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
 
             {/* Header */}
             <div>
-              <DialogTitle className="text-xl font-bold tracking-tight text-foreground">
+              <DialogTitle className={clsx("font-bold tracking-tight text-foreground", authUser ? "text-base" : "text-xl")}>
                 {title}
               </DialogTitle>
               <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
@@ -475,17 +489,17 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                   Stellar Login
                 </TabsTrigger>
               </TabsList>
-              <TabsContent value="action" className="mt-4">
+              <TabsContent value="action" className={authUser ? "mt-2" : "mt-4"}>
                 <ActionTabContent />
               </TabsContent>
-              <TabsContent value="stellar" className="mt-4">
+              <TabsContent value="stellar" className={authUser ? "mt-2" : "mt-4"}>
                 <StellarTabContent />
               </TabsContent>
             </Tabs>
 
             {/* Disconnect */}
             {authUser && (
-              <div className="mt-auto flex flex-col gap-3 pt-2">
+              <div className="mt-auto flex flex-col gap-2">
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
                     <span className="w-full border-t" />
@@ -544,11 +558,13 @@ function WCButton({
   selectedWallet,
   text,
   onDark = false,
+  inGrid = false,
 }: {
   toolTipsAddr: (walletType: WalletType) => string | undefined;
   selectedWallet: WalletType;
   text?: string;
   onDark?: boolean;
+  inGrid?: boolean;
 }) {
   const [initializing, setInitializing] = useState(true);
   const [wcLoading, setWcLoading] = useState(false);
@@ -586,7 +602,8 @@ function WCButton({
           void runner();
         }}
         className={clsx(
-          "flex w-full items-center justify-center gap-2.5 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-150 disabled:opacity-60",
+          "flex w-full items-center gap-2.5 rounded-xl border text-sm font-medium transition-all duration-150 disabled:opacity-60",
+          inGrid ? "px-3 py-2" : "justify-center px-4 py-2.5",
           isSelected
             ? "border-primary bg-primary/10 ring-1 ring-primary/30  hover:bg-primary/20"
             : onDark
@@ -594,7 +611,9 @@ function WCButton({
               : "border-border bg-card text-card-foreground hover:border-primary/50 hover:bg-muted",
         )}
       >
-        <Image src="/images/icons/labstr.png" alt="Lobstr" width={20} height={20} className="flex-shrink-0 rounded-full" />
+        <span className={clsx("flex flex-shrink-0 items-center justify-center", inGrid ? "h-7 w-7" : "")}>
+          <Image src="/images/icons/labstr.png" alt="Lobstr" width={inGrid ? 28 : 20} height={inGrid ? 28 : 20} className="rounded-full object-contain" />
+        </span>
         {text && (
           <span className="whitespace-nowrap">
             {wcLoading && initializing ? "Initializing…" : text}

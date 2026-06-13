@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { WalleteNextLogin } from "~/utils/next-login";
 import { WalletType } from "../../../lib/enums";
 import { addrShort, checkPubkey } from "../../../lib/utils";
+import { showFundAccountToast } from "./fund_account_toast";
 import { submitSignedXDRToServer } from "../utils";
 import { formatErrorForLogging, parseStellarError, StellarTransactionError } from "../../error-handler";
 import { networkPassphrase } from "../constant";
@@ -52,7 +53,10 @@ export async function rabetLogin() {
     success: "XDR fetched",
   });
 
-  if (!xdrRes.ok) return;
+  if (!xdrRes.ok) {
+    showFundAccountToast(pubkey);
+    return;
+  }
 
   const data = (await xdrRes.json()) as { xdr: string };
 
