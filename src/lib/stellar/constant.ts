@@ -22,6 +22,15 @@ export const PLATFORM_ASSET = new Asset(
 
 export const TrxBaseFee = env.NEXT_PUBLIC_STAGE === "prod" ? "1000" : "100";
 
+export function stellarExpertUrl(code: string, issuer: string | null | undefined): string {
+  const network = env.NEXT_PUBLIC_STELLAR_PUBNET ? "public" : "testnet";
+  if (!issuer || code === "XLM") {
+    return `https://stellar.expert/explorer/${network}/asset/XLM`;
+  }
+  return `https://stellar.expert/explorer/${network}/asset/${code}-${issuer}`;
+}
+
+
 function calculatePlatformFees(stage: string, assetCode: string) {
   const isProd = stage === "prod";
   const code = assetCode.toLowerCase();
