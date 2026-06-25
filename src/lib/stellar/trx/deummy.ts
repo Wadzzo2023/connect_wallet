@@ -6,12 +6,12 @@ import {
   Transaction,
   TransactionBuilder,
 } from "@stellar/stellar-sdk";
-import { MOTHER_SECRET } from "~/lib/stellar/marketplace/SECRET";
 import { networkPassphrase, STELLAR_URL } from "../constant";
+import { env } from "~/env";
 
 export async function GetDummyXDR({ pubkey }: { pubkey: string }) {
   const server = new Horizon.Server(STELLAR_URL);
-  const serverKeypair = Keypair.fromSecret(MOTHER_SECRET);
+  const serverKeypair = Keypair.fromSecret(env.MOTHER_SECRET);
   const transactionInializer = await server.loadAccount(pubkey);
 
   const Tx1 = new TransactionBuilder(transactionInializer, {
