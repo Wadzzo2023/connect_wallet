@@ -9,6 +9,13 @@ export const STELLAR_URL = env.NEXT_PUBLIC_STELLAR_PUBNET
   ? "https://horizon.stellar.org"
   : "https://horizon-testnet.stellar.org";
 
+// Soroban RPC endpoint used to simulate + assemble contract-invocation
+// transactions (bounty escrow, etc). Submission of the signed envelope still
+// goes through Horizon (STELLAR_URL) via the existing clientsign flow.
+export const SOROBAN_RPC_URL = env.NEXT_PUBLIC_STELLAR_PUBNET
+  ? "https://mainnet.sorobanrpc.com"
+  : "https://soroban-testnet.stellar.org";
+
 export const ACTION_STELLAR_ACCOUNT_URL = "https://accounts.action-tokens.com/";
 
 export const USER_ACCOUNT_URL = ACTION_STELLAR_ACCOUNT_URL + "api/account";
