@@ -29,6 +29,15 @@ export const PLATFORM_ASSET = new Asset(
 
 export const TrxBaseFee = env.NEXT_PUBLIC_STAGE === "prod" ? "1000" : "100";
 
+// Inclusion fee (stroops) bid for Soroban contract-invoke transactions
+// (bounty escrow create/select/claim/cancel, admin TTL bumps). The SDK's
+// bare default (100 stroops) isn't competitive enough to get picked up for
+// inclusion under current mainnet congestion — verified empirically that
+// transactions sit unconfirmed and expire at that default, while 1,000,000
+// stroops gets included. This is added on top of the simulated resource fee,
+// not a replacement for it.
+export const SOROBAN_INCLUSION_FEE = env.NEXT_PUBLIC_STELLAR_PUBNET ? "1000000" : "100";
+
 export function stellarExpertUrl(code: string, issuer: string | null | undefined): string {
   const network = env.NEXT_PUBLIC_STELLAR_PUBNET ? "public" : "testnet";
   if (!issuer || code === "XLM") {
