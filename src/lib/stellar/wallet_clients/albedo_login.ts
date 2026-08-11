@@ -6,10 +6,6 @@ import { WalletType } from "../../enums";
 import { addrShort, checkPubkey } from "../../utils";
 import { formatErrorForLogging, parseStellarError, StellarTransactionError } from "../../error-handler";
 
-// Albedo takes "public"/"testnet" (not the full passphrase) — mirrors the
-// network toggle every other wallet client in this folder already uses.
-const albedoNetwork = process.env.NEXT_PUBLIC_STELLAR_PUBNET === "true" ? "public" : "testnet";
-
 export async function albedoLogin() {
   const token = Math.random().toString(36).substring(2, 12);
   let userData: PublicKeyIntentResult;
@@ -52,7 +48,7 @@ export async function getSingedXdrAlbedo(xdr: string, customer: string) {
     .tx({
       xdr: xdr,
       pubkey: customer,
-      network: albedoNetwork,
+      network: "public",
     })
     .then((res) => {
       console.info(
