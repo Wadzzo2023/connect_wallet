@@ -147,6 +147,16 @@ export async function clientsign(props: {
       return false;
   }
 }
+export function extractTxHash(result: unknown): string | undefined {
+  if (result && typeof result === "object") {
+    const obj = result as Record<string, unknown>;
+    // Horizon SubmitTransactionResponse & custodial submit
+    if (typeof obj.hash === "string") return obj.hash;
+    // Albedo tx intent result
+    if (typeof obj.tx_hash === "string") return obj.tx_hash;
+  }
+  return undefined;
+}
 
 export function concatAssetWithIssuer(
   asset_code: string,
