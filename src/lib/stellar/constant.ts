@@ -94,6 +94,16 @@ export const SOROBAN_RPC_URL = env.NEXT_PUBLIC_STELLAR_PUBNET
 // not a replacement for it.
 export const SOROBAN_INCLUSION_FEE = env.NEXT_PUBLIC_STELLAR_PUBNET ? "1000000" : "100";
 
+// Added to the Square charge on a card/USD checkout, on top of the item's
+// USD sticker price — this is the one place a flat network-fee surcharge
+// can actually be collected without leaking: a Square charge is a single
+// number that lands directly in the platform's account, never split by the
+// contract the way an on-chain total would be. The Platform-Asset checkout
+// path instead recovers this atomically on-chain via the contract's own
+// `inclusion_fee` (see `contracts/nft_oz`), which a USD purchase can't use
+// since the treasury is the one funding that leg in the first place.
+export const NETWORK_FEE_IN_USD = 0.1;
+
 // Some contract addresses in `~/lib/common` are only known once
 // `pnpm contracts:deploy` has run for a given network (pubnet starts blank).
 // Call sites that build a contract-invoke XDR need a hard failure rather than
@@ -110,8 +120,14 @@ export function requireContractConstant(value: string, name: string): string {
 // out-of-range input before ever building a doomed transaction.
 export const MAX_PLATFORM_FEE_BPS = 1_000; // 10%
 export const MAX_ROYALTY_BPS = 5_000; // 50%
-// Matches the fee the deployed art collection was constructed with.
-export const DEFAULT_PLATFORM_FEE_BPS = 250; // 2.5%
+// Target fee going forward (250 -> 350). This is a *display/validation*
+// default only — the actual fee enforced on-chain is whatever's stored in
+// the shared art collection contract's own state (set via `set_platform_fee`
+// / the `admin.platformFee` mutation). Bumping this constant does NOT by
+// itself change what real purchases are charged; someone with admin access
+// still needs to run that mutation once against the live (shared with
+// actionverse) contract before this value and reality agree.
+export const DEFAULT_PLATFORM_FEE_BPS = 350; // 3.5%
 
 // The contracts' `price`/`total_price` fields are i128 amounts in the payment
 // token's raw (stroop-like) units. Stellar assets use 7 decimal places by
