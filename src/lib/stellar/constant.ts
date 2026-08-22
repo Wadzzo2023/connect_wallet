@@ -39,29 +39,46 @@ function calculatePlatformFees(stage: string, assetCode: string) {
   const code = assetCode.toLowerCase();
 
   if (!isProd) {
-    return { trxBaseFee: "1", platformFee: "1" };
+    return { trxBaseFee: "1", platformFee: "1", inclusionFee: "1", networkFee: "1" };
   }
 
   switch (code) {
     case "wadzzo":
-      return { trxBaseFee: "10", platformFee: "25" };
+      return { trxBaseFee: "10", platformFee: "25", inclusionFee: "10", networkFee: "5" };
     case "bandcoin":
-      return { trxBaseFee: "1400", platformFee: "6000" };
+      // inclusionFee/networkFee are a rough proportional estimate, scaled
+      // from this asset's platformFee/trxBaseFee ratio against "action"'s
+      // (which was measured) — not independently calibrated. Adjust once
+      // real fee-bump costs on bandcoin are observed.
+      return { trxBaseFee: "1400", platformFee: "6000", inclusionFee: "17000", networkFee: "8500" };
     case "action":
-      return { trxBaseFee: "20", platformFee: "35" };
+      return { trxBaseFee: "20", platformFee: "35", inclusionFee: "100", networkFee: "50" };
     default:
-      return { trxBaseFee: "1", platformFee: "1" }; // fallback
+      return { trxBaseFee: "1", platformFee: "1", inclusionFee: "1", networkFee: "1" }; // fallback
   }
 }
 
 // Use calculated values but keep exports unchanged
-const { trxBaseFee, platformFee } = calculatePlatformFees(
+const { trxBaseFee, platformFee, inclusionFee, networkFee } = calculatePlatformFees(
   env.NEXT_PUBLIC_STAGE,
   PLATFORM_ASSET.code.toLocaleLowerCase(),
 );
 
 export const TrxBaseFeeInPlatformAsset = trxBaseFee;
 export const PLATFORM_FEE = platformFee;
+
+// Flat, fixed-rate reimbursement for the real Stellar/Soroban network cost
+// treasury fronts on a buyer's behalf via fee-bump (see
+// `src/lib/stellar/oz/nft.ts`'s fee-bump section and
+// `contracts/nft_oz`'s `buy_edition`/`buy`/`buy_batch`). Human-readable
+// platform-asset units (not raw/stroop units) — convert with
+// `humanPriceToRaw` at the call site. Fixed by design, not derived from a
+// live exchange rate: same reasoning as `PLATFORM_FEE`/
+// `TrxBaseFeeInPlatformAsset` above. Replaces the contract's old on-chain
+// `inclusion_fee()` lookup, which the fee-bump redesign removed in favor of
+// a call-time param the app computes.
+export const INCLUSION_FEE_IN_PLATFORM_ASSET = Number(inclusionFee);
+export const NETWORK_FEE_IN_PLATFORM_ASSET = Number(networkFee);
 
 export const STROOP = "0.0000001";
 export const TRUST_XLM = 0.6;

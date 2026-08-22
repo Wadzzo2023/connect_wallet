@@ -15,14 +15,15 @@ import { WalletType } from "../enums";
 import {
   albedoSignTrx,
   albedoSignTrxInTestNet,
+  getSingedXdrAlbedo,
 } from "./wallet_clients/albedo_login";
-import { freighterSignTrx } from "./wallet_clients/freighter_login";
+import { freighterSignTrx, userSignTransaction } from "./wallet_clients/freighter_login";
 // import { xbullXdrSingXdrAndSubmit } from "./wallet_clients/xbull_login";
-import { rabetXdrSingXdrAndSubmit } from "./wallet_clients/rabe_login";
-import { metamaskSignAndSubmitXdr } from "./wallet_clients/metamask_login";
-import { xbullSignAndSubmitXdr } from "./wallet_clients/xbull_login";
-import { hanaSignAndSubmitXdr } from "./wallet_clients/hana_login";
-import { hotWalletSignAndSubmitXdr } from "./wallet_clients/hot_wallet_login";
+import { rabetXdrSingXdr, rabetXdrSingXdrAndSubmit } from "./wallet_clients/rabe_login";
+import { metamaskSignAndSubmitXdr, metamaskSignXdr } from "./wallet_clients/metamask_login";
+import { xbullSignAndSubmitXdr, xbullSignXdr } from "./wallet_clients/xbull_login";
+import { hanaSignAndSubmitXdr, hanaSignXdr } from "./wallet_clients/hana_login";
+import { hotWalletSignAndSubmitXdr, hotWalletSignXdr } from "./wallet_clients/hot_wallet_login";
 import {
   walletConnectSignTransaction,
   walletConnectSignTransactionSubmitterWrapper,
@@ -147,6 +148,52 @@ export async function clientsign(props: {
       return false;
   }
 }
+/**
+ * Sign-only counterpart to {@link clientsign} — every external wallet
+ * already has a sign-only function sitting next to its sign-and-submit
+ * wrapper (the one `clientsign` uses); this just dispatches to that
+ * function instead, so treasury can fee-bump and submit the result itself
+ * (see `src/lib/stellar/oz/nft.ts`'s fee-bump section) rather than the
+ * wallet submitting its own transaction and paying its own network fee.
+ * Never called for a custodial `walletType` — the server handles those
+ * entirely itself and never hands back an XDR to sign client-side.
+ */
+export async function clientSignOnly(props: {
+  walletType?: WalletType;
+  presignedxdr: string;
+  pubkey?: string;
+  test?: boolean;
+}): Promise<string | undefined> {
+  if (!props.walletType || !props.pubkey) {
+    toast.error("problem with wallet type or pubkey, please reconnect wallet");
+    return undefined;
+  }
+
+  switch (props.walletType) {
+    case WalletType.albedo:
+      return await getSingedXdrAlbedo(props.presignedxdr, props.pubkey, !!props.test);
+    case WalletType.frieghter:
+      return await userSignTransaction(props.presignedxdr, props.pubkey);
+    case WalletType.rabet:
+      return await rabetXdrSingXdr(props.presignedxdr, props.pubkey);
+    case WalletType.metamask:
+      return await metamaskSignXdr(props.presignedxdr, props.pubkey);
+    case WalletType.xBull:
+      return await xbullSignXdr(props.presignedxdr, props.pubkey);
+    case WalletType.hana:
+      return await hanaSignXdr(props.presignedxdr, props.pubkey);
+    case WalletType.hotWallet:
+      return await hotWalletSignXdr(props.presignedxdr, props.pubkey);
+    case WalletType.walletConnect: {
+      const signed: unknown = await walletConnectSignTransaction(props.presignedxdr, "stellar_signXDR");
+      return typeof signed === "string" ? signed : undefined;
+    }
+    default:
+      toast.error("This wallet doesn't support sign-only transactions");
+      return undefined;
+  }
+}
+
 export function extractTxHash(result: unknown): string | undefined {
   if (result && typeof result === "object") {
     const obj = result as Record<string, unknown>;

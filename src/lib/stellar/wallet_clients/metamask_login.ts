@@ -138,6 +138,30 @@ export async function metamaskLogin() {
   }
 }
 
+/** Sign-only counterpart to {@link metamaskSignAndSubmitXdr} — same Snap
+ *  invocation, just returns the signed XDR instead of submitting it. */
+export async function metamaskSignXdr(xdr: string, _pubKey: string): Promise<string | undefined> {
+  const provider = findMetaMaskProvider();
+  if (!provider) {
+    toast.error("MetaMask is not installed.");
+    return undefined;
+  }
+
+  try {
+    await connectSnap(provider);
+    const result = await invokeSnap<string | { signedTransaction: string }>(
+      provider,
+      "signTransaction",
+      { transaction: xdr, testnet: !isMainnet },
+    );
+    return typeof result === "string" ? result : result.signedTransaction;
+  } catch (e) {
+    const parsedError = parseStellarError(e);
+    console.error("Transaction Error:", formatErrorForLogging(e));
+    throw new StellarTransactionError(parsedError);
+  }
+}
+
 export async function metamaskSignAndSubmitXdr(xdr: string, _pubKey: string) {
   const provider = findMetaMaskProvider();
   if (!provider) {
