@@ -43,30 +43,32 @@ export async function albedoLogin() {
   if (res?.error) toast.error(res.error);
 }
 
-export async function getSingedXdrAlbedo(xdr: string, customer: string) {
-  return albedo
-    .tx({
-      xdr: xdr,
+/**
+ * Sign-only counterpart to {@link albedoSignTrx}/{@link albedoSignTrxInTestNet}
+ * — same intent call, minus `submit: true`, so Albedo returns a signed
+ * envelope without broadcasting it. `isTestnet` picks the network the same
+ * way `clientsign`'s own `props.test` flag does for the sign-and-submit
+ * variants; this used to be hardcoded to `"public"` regardless of the
+ * actual configured network, which would have signed for the wrong chain
+ * on testnet.
+ */
+export async function getSingedXdrAlbedo(
+  xdr: string,
+  customer: string,
+  isTestnet: boolean,
+): Promise<string | undefined> {
+  try {
+    const res = await albedo.tx({
+      xdr,
       pubkey: customer,
-      network: "public",
-    })
-    .then((res) => {
-      console.info(
-        res.xdr,
-        res.tx_hash,
-        res.signed_envelope_xdr,
-        res.network,
-        res.result,
-        "aha",
-      );
-      return res.signed_envelope_xdr;
-    })
-    .catch((e) => {
-      console.error(e);
-      console.info("payment refected");
-      console.info("payment refected");
-      return undefined;
+      network: isTestnet ? "testnet" : "public",
     });
+    return res.signed_envelope_xdr;
+  } catch (e) {
+    const parsedError = parseStellarError(e);
+    console.error("Transaction Error:", formatErrorForLogging(e));
+    throw new StellarTransactionError(parsedError);
+  }
 }
 
 export async function albedoSignTrx(xdr: string, customer: string) {

@@ -39,29 +39,39 @@ function calculatePlatformFees(stage: string, assetCode: string) {
   const code = assetCode.toLowerCase();
 
   if (!isProd) {
-    return { trxBaseFee: "1", platformFee: "1" };
+    return { trxBaseFee: "1", platformFee: "1", inclusionFee: "1", networkFee: "1" };
   }
 
   switch (code) {
     case "wadzzo":
-      return { trxBaseFee: "10", platformFee: "25" };
+      return { trxBaseFee: "10", platformFee: "25", inclusionFee: "10", networkFee: "5" };
     case "bandcoin":
-      return { trxBaseFee: "1400", platformFee: "6000" };
+      return { trxBaseFee: "1400", platformFee: "6000", inclusionFee: "1000", networkFee: "500" };
     case "action":
-      return { trxBaseFee: "20", platformFee: "35" };
+      return { trxBaseFee: "20", platformFee: "35", inclusionFee: "100", networkFee: "50" };
     default:
-      return { trxBaseFee: "1", platformFee: "1" }; // fallback
+      return { trxBaseFee: "1", platformFee: "1", inclusionFee: "1", networkFee: "1" }; // fallback
   }
 }
 
 // Use calculated values but keep exports unchanged
-const { trxBaseFee, platformFee } = calculatePlatformFees(
+const { trxBaseFee, platformFee, inclusionFee, networkFee } = calculatePlatformFees(
   env.NEXT_PUBLIC_STAGE,
   PLATFORM_ASSET.code.toLocaleLowerCase(),
 );
 
 export const TrxBaseFeeInPlatformAsset = trxBaseFee;
 export const PLATFORM_FEE = platformFee;
+
+// Flat, fixed-rate reimbursement for the real Stellar/Soroban network cost
+// treasury fronts on a buyer's behalf — see `contracts/nft_oz`'s
+// `admin_buy_edition_for`/`admin_buy_for` and the nft_oz payment design.
+// Human-readable platform-asset units (not raw/stroop units) — convert with
+// `humanPriceToRaw` at the call site, same as any other on-chain price.
+// Fixed by design, not derived from a live exchange rate: same reasoning as
+// `PLATFORM_FEE`/`TrxBaseFeeInPlatformAsset` above.
+export const INCLUSION_FEE_IN_PLATFORM_ASSET = Number(inclusionFee);
+export const NETWORK_FEE_IN_PLATFORM_ASSET = Number(networkFee);
 
 export const STROOP = "0.0000001";
 export const TRUST_XLM = 0.6;
@@ -95,14 +105,17 @@ export const SOROBAN_RPC_URL = env.NEXT_PUBLIC_STELLAR_PUBNET
 export const SOROBAN_INCLUSION_FEE = env.NEXT_PUBLIC_STELLAR_PUBNET ? "1000000" : "100";
 
 // Added to the Square charge on a card/USD checkout, on top of the item's
-// USD sticker price — this is the one place a flat network-fee surcharge
-// can actually be collected without leaking: a Square charge is a single
-// number that lands directly in the platform's account, never split by the
-// contract the way an on-chain total would be. The Platform-Asset checkout
-// path instead recovers this atomically on-chain via the contract's own
-// `inclusion_fee` (see `contracts/nft_oz`), which a USD purchase can't use
-// since the treasury is the one funding that leg in the first place.
-export const NETWORK_FEE_IN_USD = 0.1;
+// own (creator/reseller-set) USD sticker price — this is the one place a
+// flat fee surcharge can actually be collected for a card purchase without
+// leaking: a Square charge is a single number that lands directly in the
+// platform's account, never split by the contract the way an on-chain total
+// would be. The Platform-Asset checkout path instead recovers this
+// atomically on-chain via the contract's own `inclusion_fee`/`network_fee`
+// (see `contracts/nft_oz`'s `admin_buy_edition_for`/`admin_buy_for`), which
+// a USD purchase can't use since treasury is the one funding that leg in
+// the first place — Square already collected the equivalent in USD.
+export const INCLUSION_FEE_IN_USD = 0.05;
+export const NETWORK_FEE_IN_USD = 0.05;
 
 // Some contract addresses in `~/lib/common` are only known once
 // `pnpm contracts:deploy` has run for a given network (pubnet starts blank).
