@@ -112,13 +112,17 @@ export const SOROBAN_RPC_URL = env.NEXT_PUBLIC_STELLAR_PUBNET
 export const SOROBAN_INCLUSION_FEE = env.NEXT_PUBLIC_STELLAR_PUBNET ? "1000000" : "100";
 
 // Added to the Square charge on a card/USD checkout, on top of the item's
-// USD sticker price — this is the one place a flat network-fee surcharge
-// can actually be collected without leaking: a Square charge is a single
-// number that lands directly in the platform's account, never split by the
+// USD sticker price — this is the one place a flat fee surcharge can
+// actually be collected without leaking: a Square charge is a single number
+// that lands directly in the platform's account, never split by the
 // contract the way an on-chain total would be. The Platform-Asset checkout
 // path instead recovers this atomically on-chain via the contract's own
-// `inclusion_fee` (see `contracts/nft_oz`), which a USD purchase can't use
-// since the treasury is the one funding that leg in the first place.
+// `inclusion_fee`/`network_fee` (see `contracts/nft_oz`), which a USD
+// purchase can't use since the treasury is the one funding that leg in the
+// first place — Square collects the equivalent in USD instead, split into
+// these two flat line items to mirror the Platform-Asset breakdown's own
+// two rows.
+export const INCLUSION_FEE_IN_USD = 0.05;
 export const NETWORK_FEE_IN_USD = 0.1;
 
 // Some contract addresses in `~/lib/common` are only known once
