@@ -140,7 +140,7 @@ export const MAX_ROYALTY_BPS = 5_000; // 50%
 // itself change what real purchases are charged; someone with admin access
 // still needs to run that mutation once against the live (shared with
 // bandfan) contract before this value and reality agree.
-export const DEFAULT_PLATFORM_FEE_BPS = 350; // 3.5%
+export const DEFAULT_PLATFORM_FEE_BPS = 100; // 1% // 3.5%
 
 // The contracts' `price`/`total_price` fields are i128 amounts in the payment
 // token's raw (stroop-like) units. Stellar assets use 7 decimal places by
