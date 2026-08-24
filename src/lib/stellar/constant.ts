@@ -1,6 +1,6 @@
 import { Asset, Networks } from "@stellar/stellar-sdk";
 import { env } from "~/env";
-import { computeLiveInclusionAndNetworkFee } from "./xlm-rate";
+import { computeLiveInclusionAndNetworkFee, computeLiveInclusionAndNetworkFeeInUsd } from "./xlm-rate";
 
 // =============================================================================
 // Classic Stellar (Horizon, classic assets, legacy platform-asset fee tables)
@@ -100,6 +100,13 @@ export const NETWORK_FEE_IN_PLATFORM_ASSET = Number(networkFee);
  */
 export async function getInclusionAndNetworkFee(
   quantity: number,
+  /** Whether the buyer's Stellar account is already active and already
+   *  holds the platform asset's trustline. Defaults to `true` since every
+   *  existing call site already gates on `isStellarAccountActivated`
+   *  upstream (see `ensureBuyerReady`) before ever reaching a fee
+   *  computation — pass `false` explicitly only from a flow that bundles
+   *  activation into the same purchase. */
+  accountActive = true,
 ): Promise<{ inclusionFee: number; networkFee: number }> {
   const code = PLATFORM_ASSET.code.toLocaleLowerCase();
   if (code !== "bandcoin" && code !== "action") {
@@ -111,8 +118,29 @@ export async function getInclusionAndNetworkFee(
   return computeLiveInclusionAndNetworkFee({
     asset: PLATFORM_ASSET,
     quantity,
+    accountActive,
     fallbackInclusionFee: INCLUSION_FEE_IN_PLATFORM_ASSET,
     fallbackNetworkFee: NETWORK_FEE_IN_PLATFORM_ASSET,
+  });
+}
+
+/**
+ * USD counterpart to `getInclusionAndNetworkFee` above — see
+ * `computeLiveInclusionAndNetworkFeeInUsd`'s doc comment. Falls back to
+ * `INCLUSION_FEE_IN_USD`/`NETWORK_FEE_IN_USD` (defined further down this
+ * file) when Binance is unreachable. Applies to every asset (not gated to
+ * bandcoin/action) since USD/USDC pricing doesn't depend on which
+ * platform asset a given app uses.
+ */
+export async function getInclusionAndNetworkFeeInUsd(
+  quantity: number,
+  accountActive = true,
+): Promise<{ inclusionFee: number; networkFee: number }> {
+  return computeLiveInclusionAndNetworkFeeInUsd({
+    quantity,
+    accountActive,
+    fallbackInclusionFee: INCLUSION_FEE_IN_USD,
+    fallbackNetworkFee: NETWORK_FEE_IN_USD,
   });
 }
 
