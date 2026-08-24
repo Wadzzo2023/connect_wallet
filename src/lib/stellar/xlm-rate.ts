@@ -169,7 +169,7 @@ export async function computeLiveInclusionAndNetworkFee({
 // `getXLMPrice` — testnet has no real XLM market to price against.
 // =============================================================================
 
-const USD_REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+const USD_REFRESH_INTERVAL_MS = 10 * 60 * 1000; // 5 minutes
 let usdRateCache: { rate: number; fetchedAt: number } | null = null;
 
 async function fetchXlmUsdPrice(): Promise<number> {
