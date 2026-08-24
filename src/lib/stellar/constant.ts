@@ -39,6 +39,22 @@ export function stellarExpertUrl(code: string, issuer: string | null | undefined
   return `https://stellar.expert/explorer/${network}/asset/${code}-${issuer}`;
 }
 
+/**
+ * StellarTerm's DEX trading UI for the platform asset against XLM — the
+ * wallet-agnostic "go get some" destination for a buyer whose *external*
+ * wallet doesn't hold enough of it (see `InsufficientAssetBalance`).
+ * Unlike `/recharge`, this works for any external wallet, not a custodial
+ * one specifically — it's a link to a public trading page any wallet can
+ * connect to and trade from, not an in-app custodial purchase.
+ *
+ * `null` on testnet: StellarTerm only ever indexes mainnet order books, so
+ * there's no working link to offer there.
+ */
+export function stellarTermSwapUrl(): string | null {
+  if (!env.NEXT_PUBLIC_STELLAR_PUBNET) return null;
+  return `https://stellarterm.com/exchange/${PLATFORM_ASSET.code}-${PLATFORM_ASSET.issuer}/XLM-native`;
+}
+
 function calculatePlatformFees(stage: string, assetCode: string) {
   const isProd = stage === "prod";
   const code = assetCode.toLowerCase();
