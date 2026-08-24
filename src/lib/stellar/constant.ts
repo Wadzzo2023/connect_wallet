@@ -84,19 +84,19 @@ export const NETWORK_FEE_IN_PLATFORM_ASSET = Number(networkFee);
 /**
  * Live-priced counterpart to `INCLUSION_FEE_IN_PLATFORM_ASSET`/
  * `NETWORK_FEE_IN_PLATFORM_ASSET` above — for bandcoin and action only
- * (wadzzo keeps the purely fixed values; its own `calculatePlatformFees`
- * entry was never meant to be live-priced). Computes
- * `0.4 XLM * quantity + 0.03 XLM + 0.07 XLM` (wallet-hold/TTL reserve per
- * token, plus the flat transaction and inclusion costs) converted through
- * a live Stellar DEX rate — see `computeLiveInclusionAndNetworkFee` and
- * `getXlmToAssetRate`'s doc comments for the mechanism, the on-chain
- * order-book source, and why it currently always falls back to the fixed
- * constants above (no live-tradeable liquidity exists yet for either
- * asset against XLM, on either network — verified directly against
- * Horizon before this was written). Server-side call sites (the tRPC
- * router) should call this instead of using the two fixed constants
- * directly; it starts working automatically the moment real liquidity
- * appears, with no further code change.
+ * (wadzzo keeps the purely fixed values by design; its own
+ * `calculatePlatformFees` entry was never meant to be live-priced, so that
+ * branch below isn't a fallback, it's a different asset's actual pricing
+ * model). Computes `0.4 XLM * quantity + 0.03 XLM + 0.07 XLM`
+ * (wallet-hold/TTL reserve per token, plus the flat transaction and
+ * inclusion costs) converted through a live Stellar DEX rate — see
+ * `computeLiveInclusionAndNetworkFee` and `getXlmToAssetRate`'s doc
+ * comments for the mechanism and the on-chain order-book source. Throws if
+ * no live rate exists yet (no live-tradeable liquidity currently exists
+ * for either asset against XLM, on either network — verified directly
+ * against Horizon) — callers must handle that rather than silently
+ * charging a fixed guess. Server-side call sites (the tRPC router) should
+ * call this instead of using the two fixed constants directly.
  */
 export async function getInclusionAndNetworkFee(
   quantity: number,
@@ -119,29 +119,24 @@ export async function getInclusionAndNetworkFee(
     asset: PLATFORM_ASSET,
     quantity,
     accountActive,
-    fallbackInclusionFee: INCLUSION_FEE_IN_PLATFORM_ASSET,
-    fallbackNetworkFee: NETWORK_FEE_IN_PLATFORM_ASSET,
   });
 }
 
 /**
  * USD counterpart to `getInclusionAndNetworkFee` above — see
- * `computeLiveInclusionAndNetworkFeeInUsd`'s doc comment. Falls back to
- * `INCLUSION_FEE_IN_USD`/`NETWORK_FEE_IN_USD` (defined further down this
- * file) when Binance is unreachable. Applies to every asset (not gated to
- * bandcoin/action) since USD/USDC pricing doesn't depend on which
+ * `computeLiveInclusionAndNetworkFeeInUsd`'s doc comment. Throws if
+ * Binance is unreachable and there's no cached rate — does not fall back
+ * to `INCLUSION_FEE_IN_USD`/`NETWORK_FEE_IN_USD` (defined further down
+ * this file; kept only for the unrelated flat Square-fee display that
+ * doesn't go through this live path). Applies to every asset (not gated
+ * to bandcoin/action) since USD/USDC pricing doesn't depend on which
  * platform asset a given app uses.
  */
 export async function getInclusionAndNetworkFeeInUsd(
   quantity: number,
   accountActive = true,
 ): Promise<{ inclusionFee: number; networkFee: number }> {
-  return computeLiveInclusionAndNetworkFeeInUsd({
-    quantity,
-    accountActive,
-    fallbackInclusionFee: INCLUSION_FEE_IN_USD,
-    fallbackNetworkFee: NETWORK_FEE_IN_USD,
-  });
+  return computeLiveInclusionAndNetworkFeeInUsd({ quantity, accountActive });
 }
 
 export const STROOP = "0.0000001";

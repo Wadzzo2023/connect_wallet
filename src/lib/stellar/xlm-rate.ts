@@ -14,9 +14,10 @@ import { STELLAR_URL } from "./constant";
  * Returns `null` (not a thrown error) when the order book has no asks —
  * true right now for both Bandcoin and Action, on both pubnet and
  * testnet: verified directly against Horizon (empty order books, and
- * zero strict-send paths either) before writing this. Callers must fall
- * back to a fixed estimate when this returns `null` — there is currently
- * no live price to derive a rate from for either asset.
+ * zero strict-send paths either) before writing this. `null` at this
+ * layer just means "no rate yet, ask again later" — it's this file's own
+ * callers (`computeLiveInclusionAndNetworkFee`) that decide what to do
+ * about it, currently by throwing rather than guessing a fixed number.
  */
 
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
@@ -119,20 +120,19 @@ function applyFeeFormula(
 
 /**
  * Computes inclusion_fee/network_fee in platform-asset units for a
- * purchase of `quantity` copies, using the live XLM rate when one's
- * available (see `applyFeeFormula` for the formula itself).
+ * purchase of `quantity` copies, using the live XLM rate (see
+ * `applyFeeFormula` for the formula itself).
  *
- * Falls back to `fallbackInclusionFee`/`fallbackNetworkFee` (today's
- * fixed per-asset values, already computed elsewhere) when there's no
- * live rate yet — see `getXlmToAssetRate`'s doc comment for why that's
- * the current state for every asset this applies to right now.
+ * Throws — does not fall back to a fixed guess — when there's no live rate
+ * yet; see `getXlmToAssetRate`'s doc comment for why that's the current
+ * state for every asset this applies to right now. Callers must handle
+ * that failure explicitly (surface it, retry, block the purchase) rather
+ * than silently charging a stale or made-up fee.
  */
 export async function computeLiveInclusionAndNetworkFee({
   asset,
   quantity,
   accountActive,
-  fallbackInclusionFee,
-  fallbackNetworkFee,
 }: {
   asset: Asset;
   quantity: number;
@@ -141,12 +141,12 @@ export async function computeLiveInclusionAndNetworkFee({
    *  creation + trustline cost into `inclusionFee` (see
    *  `INACTIVE_ACCOUNT_FEES_XLM`). */
   accountActive: boolean;
-  fallbackInclusionFee: number;
-  fallbackNetworkFee: number;
 }): Promise<{ inclusionFee: number; networkFee: number }> {
   const rate = await getXlmToAssetRate(asset);
   if (rate === null) {
-    return { inclusionFee: fallbackInclusionFee, networkFee: fallbackNetworkFee };
+    throw new Error(
+      `No live DEX rate available for ${asset.getCode()} — cannot compute a live inclusion/network fee right now.`,
+    );
   }
   return applyFeeFormula(rate, quantity, accountActive);
 }
@@ -202,21 +202,20 @@ export async function getXlmToUsdRate(): Promise<number | null> {
  * book. Applies universally (not gated by platform-asset code the way the
  * platform-asset version is) since USD/USDC pricing has nothing to do with
  * which platform asset a given app uses.
+ *
+ * Throws — does not fall back to a fixed guess — if Binance is unreachable
+ * and there's no cached rate to reuse yet (see `getXlmToUsdRate`).
  */
 export async function computeLiveInclusionAndNetworkFeeInUsd({
   quantity,
   accountActive,
-  fallbackInclusionFee,
-  fallbackNetworkFee,
 }: {
   quantity: number;
   accountActive: boolean;
-  fallbackInclusionFee: number;
-  fallbackNetworkFee: number;
 }): Promise<{ inclusionFee: number; networkFee: number }> {
   const rate = await getXlmToUsdRate();
   if (rate === null) {
-    return { inclusionFee: fallbackInclusionFee, networkFee: fallbackNetworkFee };
+    throw new Error("No live XLM/USD rate available — cannot compute a live inclusion/network fee right now.");
   }
   return applyFeeFormula(rate, quantity, accountActive);
 }
