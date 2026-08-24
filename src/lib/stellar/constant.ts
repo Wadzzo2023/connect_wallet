@@ -1,5 +1,10 @@
 import { Asset, Networks } from "@stellar/stellar-sdk";
 import { env } from "~/env";
+import {
+  computeLiveInclusionAndNetworkFee,
+  computeLiveInclusionAndNetworkFeeInUsd,
+  getXlmToUsdRate,
+} from "./xlm-rate";
 
 // =============================================================================
 // Classic Stellar (Horizon, classic assets, legacy platform-asset fee tables)
@@ -32,6 +37,22 @@ export function stellarExpertUrl(code: string, issuer: string | null | undefined
     return `https://stellar.expert/explorer/${network}/asset/XLM`;
   }
   return `https://stellar.expert/explorer/${network}/asset/${code}-${issuer}`;
+}
+
+/**
+ * StellarTerm's DEX trading UI for the platform asset against XLM — the
+ * wallet-agnostic "go get some" destination for a buyer whose *external*
+ * wallet doesn't hold enough of it (see `InsufficientAssetBalance`).
+ * Unlike an in-app top-up, this works for any external wallet, not a
+ * custodial one specifically — it's a link to a public trading page any
+ * wallet can connect to and trade from, not an in-app custodial purchase.
+ *
+ * `null` on testnet: StellarTerm only ever indexes mainnet order books, so
+ * there's no working link to offer there.
+ */
+export function stellarTermSwapUrl(): string | null {
+  if (!env.NEXT_PUBLIC_STELLAR_PUBNET) return null;
+  return `https://stellarterm.com/exchange/${PLATFORM_ASSET.code}-${PLATFORM_ASSET.issuer}/XLM-native`;
 }
 
 function calculatePlatformFees(stage: string, assetCode: string) {
@@ -72,6 +93,46 @@ export const PLATFORM_FEE = platformFee;
 // `PLATFORM_FEE`/`TrxBaseFeeInPlatformAsset` above.
 export const INCLUSION_FEE_IN_PLATFORM_ASSET = Number(inclusionFee);
 export const NETWORK_FEE_IN_PLATFORM_ASSET = Number(networkFee);
+
+/**
+ * Live-priced counterpart to `INCLUSION_FEE_IN_PLATFORM_ASSET`/
+ * `NETWORK_FEE_IN_PLATFORM_ASSET` above — for bandcoin and action only
+ * (wadzzo keeps the purely fixed values by design; its own
+ * `calculatePlatformFees` entry was never meant to be live-priced, so that
+ * branch below isn't a fallback, it's a different asset's actual pricing
+ * model). Computes `0.4 XLM * quantity + 0.03 XLM + 0.07 XLM`
+ * (wallet-hold/TTL reserve per token, plus the flat transaction and
+ * inclusion costs) converted through a live Stellar DEX rate — see
+ * `computeLiveInclusionAndNetworkFee` and `getXlmToAssetRate`'s doc
+ * comments for the mechanism and the on-chain order-book source. Throws if
+ * no live rate exists yet (no live-tradeable liquidity currently exists
+ * for either asset against XLM, on either network — verified directly
+ * against Horizon) — callers must handle that rather than silently
+ * charging a fixed guess. Server-side call sites (the tRPC router) should
+ * call this instead of using the two fixed constants directly.
+ */
+export async function getInclusionAndNetworkFee(
+  quantity: number,
+  /** Whether the buyer's Stellar account is already active and already
+   *  holds the platform asset's trustline. Defaults to `true` since every
+   *  existing call site already gates on account-activation upstream
+   *  before ever reaching a fee computation — pass `false` explicitly
+   *  only from a flow that bundles activation into the same purchase. */
+  accountActive = true,
+): Promise<{ inclusionFee: number; networkFee: number }> {
+  const code = PLATFORM_ASSET.code.toLocaleLowerCase();
+  if (code !== "bandcoin" && code !== "action") {
+    return {
+      inclusionFee: INCLUSION_FEE_IN_PLATFORM_ASSET,
+      networkFee: NETWORK_FEE_IN_PLATFORM_ASSET,
+    };
+  }
+  return computeLiveInclusionAndNetworkFee({
+    asset: PLATFORM_ASSET,
+    quantity,
+    accountActive,
+  });
+}
 
 export const STROOP = "0.0000001";
 export const TRUST_XLM = 0.6;
@@ -116,6 +177,50 @@ export const SOROBAN_INCLUSION_FEE = env.NEXT_PUBLIC_STELLAR_PUBNET ? "1000000" 
 // the first place — Square already collected the equivalent in USD.
 export const INCLUSION_FEE_IN_USD = 0.05;
 export const NETWORK_FEE_IN_USD = 0.05;
+
+/**
+ * USD counterpart to `getInclusionAndNetworkFee` above — see
+ * `computeLiveInclusionAndNetworkFeeInUsd`'s doc comment. Throws if
+ * Binance is unreachable and there's no cached rate — does not fall back
+ * to `INCLUSION_FEE_IN_USD`/`NETWORK_FEE_IN_USD` above (kept only for the
+ * unrelated flat Square-fee display that doesn't go through this live
+ * path). Applies to every asset (not gated to bandcoin/action) since
+ * USD/USDC pricing doesn't depend on which platform asset a given app
+ * uses.
+ */
+export async function getInclusionAndNetworkFeeInUsd(
+  quantity: number,
+  accountActive = true,
+): Promise<{ inclusionFee: number; networkFee: number }> {
+  return computeLiveInclusionAndNetworkFeeInUsd({ quantity, accountActive });
+}
+
+/**
+ * Real XLM cost of silently activating a custodial card buyer's account
+ * and establishing its Platform Asset trustline in one step — see
+ * `ensureBuyerActivatedAndTrustedForCardPurchase` in
+ * `~/lib/stellar/oz/nft.ts`, which spends exactly this much treasury XLM.
+ * This is Stellar's own minimum reserve for an account holding one
+ * trustline, not a padded estimate: (2 base reserves + 1 entry) * 0.5 XLM.
+ */
+export const ACCOUNT_ACTIVATION_COST_XLM = 1.5;
+
+/**
+ * USD-equivalent of `ACCOUNT_ACTIVATION_COST_XLM` right now, via the live
+ * Binance XLM/USD rate (same source as `getInclusionAndNetworkFeeInUsd`).
+ * A card/USD purchase that also has to activate the buyer's account adds
+ * this on top of the total, so treasury is reimbursed for the real XLM it
+ * fronts rather than eating the cost. Throws — no fixed fallback — if the
+ * live rate is unavailable, same reasoning as
+ * `computeLiveInclusionAndNetworkFeeInUsd`.
+ */
+export async function getAccountActivationCostInUsd(): Promise<number> {
+  const rate = await getXlmToUsdRate();
+  if (rate === null) {
+    throw new Error("No live XLM/USD rate available — cannot price account activation right now.");
+  }
+  return ACCOUNT_ACTIVATION_COST_XLM * rate;
+}
 
 // Some contract addresses in `~/lib/common` are only known once
 // `pnpm contracts:deploy` has run for a given network (pubnet starts blank).
