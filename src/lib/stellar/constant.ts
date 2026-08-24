@@ -1,6 +1,10 @@
 import { Asset, Networks } from "@stellar/stellar-sdk";
 import { env } from "~/env";
-import { computeLiveInclusionAndNetworkFee, computeLiveInclusionAndNetworkFeeInUsd } from "./xlm-rate";
+import {
+  computeLiveInclusionAndNetworkFee,
+  computeLiveInclusionAndNetworkFeeInUsd,
+  getXlmToUsdRate,
+} from "./xlm-rate";
 
 // =============================================================================
 // Classic Stellar (Horizon, classic assets, legacy platform-asset fee tables)
@@ -137,6 +141,34 @@ export async function getInclusionAndNetworkFeeInUsd(
   accountActive = true,
 ): Promise<{ inclusionFee: number; networkFee: number }> {
   return computeLiveInclusionAndNetworkFeeInUsd({ quantity, accountActive });
+}
+
+/**
+ * Real XLM cost of silently activating a custodial card buyer's account
+ * and establishing its Platform Asset trustline in one step — see
+ * `ensureBuyerActivatedAndTrustedForCardPurchase` in
+ * `~/lib/stellar/marketplace/trx/site-asset-recharge.ts`, which spends
+ * exactly this much treasury XLM. This is Stellar's own minimum reserve
+ * for an account holding one trustline, not a padded estimate: (2 base
+ * reserves + 1 entry) * 0.5 XLM.
+ */
+export const ACCOUNT_ACTIVATION_COST_XLM = 1.5;
+
+/**
+ * USD-equivalent of `ACCOUNT_ACTIVATION_COST_XLM` right now, via the live
+ * Binance XLM/USD rate (same source as `getInclusionAndNetworkFeeInUsd`).
+ * A card/USD purchase that also has to activate the buyer's account adds
+ * this on top of the total, so treasury is reimbursed for the real XLM it
+ * fronts rather than eating the cost. Throws — no fixed fallback — if the
+ * live rate is unavailable, same reasoning as
+ * `computeLiveInclusionAndNetworkFeeInUsd`.
+ */
+export async function getAccountActivationCostInUsd(): Promise<number> {
+  const rate = await getXlmToUsdRate();
+  if (rate === null) {
+    throw new Error("No live XLM/USD rate available — cannot price account activation right now.");
+  }
+  return ACCOUNT_ACTIVATION_COST_XLM * rate;
 }
 
 export const STROOP = "0.0000001";
