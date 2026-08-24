@@ -153,35 +153,42 @@ export async function computeLiveInclusionAndNetworkFee({
 
 // =============================================================================
 // USD / USDC — 1 USDC = 1 USD by definition, so "XLM units per USDC" is the
-// same number as "XLM price in USD". Sourced from Binance's XLMUSDT ticker
-// rather than a Stellar DEX order book — this codebase already trusts that
-// exact feed for the same purpose elsewhere (`getXlmUsdPrice` in
-// `src/lib/stellar/fan/get_token_price.ts`), and unlike bandcoin/action's
-// thin or empty Stellar order books, a major-pair CEX ticker is reliably
-// live. This file doesn't import that app-level function directly (this is
-// the shared submodule; app code depends on it, not the other way around)
-// — it re-implements the same call against the same public endpoint.
+// same number as "XLM price in USD". Sourced from stellar.expert's XLM
+// asset endpoint, matching the existing `getXLMPrice` in
+// `src/lib/stellar/fan/get_token_price.ts` — NOT Binance: Binance blocks
+// API access from this app's production hosting IP range (confirmed by a
+// live 500 on `getInclusionAndNetworkFeeInUsdPreview` on mainnet, while the
+// exact same request succeeds from an unrelated network), so a CEX ticker
+// that reads fine in development is not actually reliable in production
+// here. stellar.expert is already proven working from prod via that same
+// app-level function. This file doesn't import that app-level function
+// directly (this is the shared submodule; app code depends on it, not the
+// other way around) — it re-implements the same call against the same
+// public endpoint. Always queries the `public` (mainnet) network regardless
+// of which network this app is otherwise pointed at, same as
+// `getXLMPrice` — testnet has no real XLM market to price against.
 // =============================================================================
 
 const USD_REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 let usdRateCache: { rate: number; fetchedAt: number } | null = null;
 
 async function fetchXlmUsdPrice(): Promise<number> {
-  const response = await axios.get<{ price: string }>(
-    "https://api.binance.com/api/v3/avgPrice?symbol=XLMUSDT",
+  const response = await axios.get<{ price: number }>(
+    "https://api.stellar.expert/explorer/public/asset/XLM",
   );
-  const price = Number(response.data.price);
+  const price = response.data.price;
   if (!Number.isFinite(price) || price <= 0) {
-    throw new Error(`Binance returned an unusable XLMUSDT price: ${response.data.price}`);
+    throw new Error(`stellar.expert returned an unusable XLM price: ${response.data.price}`);
   }
   return price;
 }
 
 /**
  * USD (== USDC) units per 1 XLM, right now. Cached the same way
- * `getXlmToAssetRate` is. Returns `null` only if Binance is unreachable
- * AND there's no cached value yet to fall back on — in steady state this
- * essentially always succeeds, unlike the DEX-based platform-asset rate.
+ * `getXlmToAssetRate` is. Returns `null` only if stellar.expert is
+ * unreachable AND there's no cached value yet to fall back on — in steady
+ * state this essentially always succeeds, unlike the DEX-based
+ * platform-asset rate.
  */
 export async function getXlmToUsdRate(): Promise<number | null> {
   if (usdRateCache && Date.now() - usdRateCache.fetchedAt < USD_REFRESH_INTERVAL_MS) {
@@ -198,13 +205,14 @@ export async function getXlmToUsdRate(): Promise<number | null> {
 
 /**
  * USD counterpart to `computeLiveInclusionAndNetworkFee` — same formula,
- * priced via the live Binance XLM/USD rate instead of a Stellar DEX order
- * book. Applies universally (not gated by platform-asset code the way the
- * platform-asset version is) since USD/USDC pricing has nothing to do with
- * which platform asset a given app uses.
+ * priced via the live stellar.expert XLM/USD rate instead of a Stellar DEX
+ * order book. Applies universally (not gated by platform-asset code the
+ * way the platform-asset version is) since USD/USDC pricing has nothing to
+ * do with which platform asset a given app uses.
  *
- * Throws — does not fall back to a fixed guess — if Binance is unreachable
- * and there's no cached rate to reuse yet (see `getXlmToUsdRate`).
+ * Throws — does not fall back to a fixed guess — if stellar.expert is
+ * unreachable and there's no cached rate to reuse yet (see
+ * `getXlmToUsdRate`).
  */
 export async function computeLiveInclusionAndNetworkFeeInUsd({
   quantity,
