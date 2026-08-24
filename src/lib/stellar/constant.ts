@@ -1,5 +1,6 @@
 import { Asset, Networks } from "@stellar/stellar-sdk";
 import { env } from "~/env";
+import { computeLiveInclusionAndNetworkFee } from "./xlm-rate";
 
 // =============================================================================
 // Classic Stellar (Horizon, classic assets, legacy platform-asset fee tables)
@@ -79,6 +80,41 @@ export const PLATFORM_FEE = platformFee;
 // a call-time param the app computes.
 export const INCLUSION_FEE_IN_PLATFORM_ASSET = Number(inclusionFee);
 export const NETWORK_FEE_IN_PLATFORM_ASSET = Number(networkFee);
+
+/**
+ * Live-priced counterpart to `INCLUSION_FEE_IN_PLATFORM_ASSET`/
+ * `NETWORK_FEE_IN_PLATFORM_ASSET` above — for bandcoin and action only
+ * (wadzzo keeps the purely fixed values; its own `calculatePlatformFees`
+ * entry was never meant to be live-priced). Computes
+ * `0.4 XLM * quantity + 0.03 XLM + 0.07 XLM` (wallet-hold/TTL reserve per
+ * token, plus the flat transaction and inclusion costs) converted through
+ * a live Stellar DEX rate — see `computeLiveInclusionAndNetworkFee` and
+ * `getXlmToAssetRate`'s doc comments for the mechanism, the on-chain
+ * order-book source, and why it currently always falls back to the fixed
+ * constants above (no live-tradeable liquidity exists yet for either
+ * asset against XLM, on either network — verified directly against
+ * Horizon before this was written). Server-side call sites (the tRPC
+ * router) should call this instead of using the two fixed constants
+ * directly; it starts working automatically the moment real liquidity
+ * appears, with no further code change.
+ */
+export async function getInclusionAndNetworkFee(
+  quantity: number,
+): Promise<{ inclusionFee: number; networkFee: number }> {
+  const code = PLATFORM_ASSET.code.toLocaleLowerCase();
+  if (code !== "bandcoin" && code !== "action") {
+    return {
+      inclusionFee: INCLUSION_FEE_IN_PLATFORM_ASSET,
+      networkFee: NETWORK_FEE_IN_PLATFORM_ASSET,
+    };
+  }
+  return computeLiveInclusionAndNetworkFee({
+    asset: PLATFORM_ASSET,
+    quantity,
+    fallbackInclusionFee: INCLUSION_FEE_IN_PLATFORM_ASSET,
+    fallbackNetworkFee: NETWORK_FEE_IN_PLATFORM_ASSET,
+  });
+}
 
 export const STROOP = "0.0000001";
 export const TRUST_XLM = 0.6;
