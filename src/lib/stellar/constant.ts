@@ -104,12 +104,16 @@ export const NETWORK_FEE_IN_PLATFORM_ASSET = Number(networkFee);
  * (wallet-hold/TTL reserve per token, plus the flat transaction and
  * inclusion costs) converted through a live Stellar DEX rate — see
  * `computeLiveInclusionAndNetworkFee` and `getXlmToAssetRate`'s doc
- * comments for the mechanism and the on-chain order-book source. Throws if
- * no live rate exists yet (no live-tradeable liquidity currently exists
- * for either asset against XLM, on either network — verified directly
- * against Horizon) — callers must handle that rather than silently
- * charging a fixed guess. Server-side call sites (the tRPC router) should
- * call this instead of using the two fixed constants directly.
+ * comments for the mechanism and the on-chain order-book source.
+ *
+ * Falls back to `INCLUSION_FEE_IN_PLATFORM_ASSET`/
+ * `NETWORK_FEE_IN_PLATFORM_ASSET` — the same production fee table used
+ * everywhere else in this file, not a placeholder — when there's no live
+ * rate yet (no live-tradeable liquidity currently exists for either asset
+ * against XLM, on either network — verified directly against Horizon).
+ * `computeLiveInclusionAndNetworkFee` itself still throws rather than
+ * guess; this is the one call site that catches that and substitutes a
+ * real, already-calibrated number instead of blocking checkout entirely.
  */
 export async function getInclusionAndNetworkFee(
   quantity: number,
@@ -127,11 +131,18 @@ export async function getInclusionAndNetworkFee(
       networkFee: NETWORK_FEE_IN_PLATFORM_ASSET,
     };
   }
-  return computeLiveInclusionAndNetworkFee({
-    asset: PLATFORM_ASSET,
-    quantity,
-    accountActive,
-  });
+  try {
+    return await computeLiveInclusionAndNetworkFee({
+      asset: PLATFORM_ASSET,
+      quantity,
+      accountActive,
+    });
+  } catch {
+    return {
+      inclusionFee: INCLUSION_FEE_IN_PLATFORM_ASSET,
+      networkFee: NETWORK_FEE_IN_PLATFORM_ASSET,
+    };
+  }
 }
 
 export const STROOP = "0.0000001";
