@@ -102,6 +102,20 @@ export const INCLUSION_FEE_IN_PLATFORM_ASSET = Number(inclusionFee);
 export const NETWORK_FEE_IN_PLATFORM_ASSET = Number(networkFee);
 
 /**
+ * Safety margin applied on top of the live per-item price floor wherever a
+ * creator/reseller *sets* a price (not at purchase time, where the exact
+ * live number should still be used) — see `getInclusionAndNetworkFee`'s doc
+ * comment for what that floor is and why it moves. The floor is a live
+ * number tied to the current XLM/platform-asset rate, not a fixed constant:
+ * an item priced exactly at today's floor can fall back under tomorrow's
+ * floor purely from ordinary rate movement between listing and purchase,
+ * with nothing about the item or the code having changed. Padding the
+ * *listing-time* floor by this much absorbs normal day-to-day drift so a
+ * price that was fine when set doesn't silently become unbuyable later.
+ */
+export const LISTING_PRICE_FLOOR_MARGIN = 1.5;
+
+/**
  * Live-priced counterpart to `INCLUSION_FEE_IN_PLATFORM_ASSET`/
  * `NETWORK_FEE_IN_PLATFORM_ASSET` above — for bandcoin and action only
  * (wadzzo keeps the purely fixed values by design; its own
