@@ -1,6 +1,7 @@
 import { Asset, Networks } from "@stellar/stellar-sdk";
 import { env } from "~/env";
 import {
+  applyFeeFormula,
   computeLiveInclusionAndNetworkFee,
   computeLiveInclusionAndNetworkFeeInUsd,
   getXlmToUsdRate,
@@ -59,9 +60,27 @@ function calculatePlatformFees(stage: string, assetCode: string) {
   const isProd = stage === "prod";
   const code = assetCode.toLowerCase();
 
+  // Bandcoin uses its production figures on development too, deliberately.
+  // These constants are the *fallback* the live-rate path lands on
+  // (`getInclusionAndNetworkFee` below), and on development that fallback is
+  // effectively always taken: the live rate is looked up on stellar.expert's
+  // public network, which has no entry for development's testnet issuer, so
+  // the lookup fails and the fixed table is used. Leaving development at `1`
+  // meant a purchase there cost ~1 token while the same purchase in
+  // production cost tens of thousands — far too different to catch a pricing
+  // or affordability bug before release.
+
   if (!isProd) {
-    return { trxBaseFee: "1", platformFee: "1", inclusionFee: "1", networkFee: "1" };
+    switch (code) {
+      case "bandcoin":
+        return { trxBaseFee: "1400", platformFee: "6000", inclusionFee: "49823", networkFee: "3180" };
+      case "action":
+        return { trxBaseFee: "20", platformFee: "35", inclusionFee: "100", networkFee: "50" };
+      default:
+        return { trxBaseFee: "1", platformFee: "1", inclusionFee: "1", networkFee: "1" }; // fallback
+    }
   }
+
 
   switch (code) {
     case "wadzzo":
@@ -102,20 +121,6 @@ export const INCLUSION_FEE_IN_PLATFORM_ASSET = Number(inclusionFee);
 export const NETWORK_FEE_IN_PLATFORM_ASSET = Number(networkFee);
 
 /**
- * Safety margin applied on top of the live per-item price floor wherever a
- * creator/reseller *sets* a price (not at purchase time, where the exact
- * live number should still be used) — see `getInclusionAndNetworkFee`'s doc
- * comment for what that floor is and why it moves. The floor is a live
- * number tied to the current XLM/platform-asset rate, not a fixed constant:
- * an item priced exactly at today's floor can fall back under tomorrow's
- * floor purely from ordinary rate movement between listing and purchase,
- * with nothing about the item or the code having changed. Padding the
- * *listing-time* floor by this much absorbs normal day-to-day drift so a
- * price that was fine when set doesn't silently become unbuyable later.
- */
-export const LISTING_PRICE_FLOOR_MARGIN = 1.5;
-
-/**
  * Live-priced counterpart to `INCLUSION_FEE_IN_PLATFORM_ASSET`/
  * `NETWORK_FEE_IN_PLATFORM_ASSET` above — for bandcoin and action only
  * (wadzzo keeps the purely fixed values by design; its own
@@ -136,6 +141,38 @@ export const LISTING_PRICE_FLOOR_MARGIN = 1.5;
  * guess; this is the one call site that catches that and substitutes a
  * real, already-calibrated number instead of blocking checkout entirely.
  */
+/**
+ * The fixed fee table, scaled for a given purchase the same way the live path
+ * scales the live rate.
+ *
+ * `INCLUSION_FEE_IN_PLATFORM_ASSET`/`NETWORK_FEE_IN_PLATFORM_ASSET` are single
+ * flat numbers calibrated for one baseline case: buying **one** copy into an
+ * **already-active** account. Returning them verbatim for every purchase —
+ * which is what the fallback used to do — quoted that one-copy fee no matter
+ * how many copies were bought, and ignored the 2.5 XLM account-activation cost
+ * an inactive buyer incurs. A 10-copy purchase reimbursed treasury for one
+ * copy's ledger reserves and ate the rest.
+ *
+ * So rather than return the constants raw, scale them by the ratio
+ * `applyFeeFormula` itself produces between this purchase and that baseline.
+ * Deriving the ratio from the shared formula (rather than re-deriving an
+ * implied exchange rate) keeps the fallback exactly in step with the live path
+ * for any asset, however its own fixed entry was originally calibrated.
+ */
+function scaledFixedFee(
+  quantity: number,
+  accountActive: boolean,
+): { inclusionFee: number; networkFee: number } {
+  // `unitsPerXlm: 1` → raw XLM amounts, so these are pure ratios.
+  const baseline = applyFeeFormula(1, 1, true);
+  const thisPurchase = applyFeeFormula(1, quantity, accountActive);
+  return {
+    inclusionFee:
+      INCLUSION_FEE_IN_PLATFORM_ASSET * (thisPurchase.inclusionFee / baseline.inclusionFee),
+    networkFee: NETWORK_FEE_IN_PLATFORM_ASSET * (thisPurchase.networkFee / baseline.networkFee),
+  };
+}
+
 export async function getInclusionAndNetworkFee(
   quantity: number,
   /** Whether the buyer's Stellar account is already active and already
@@ -148,10 +185,7 @@ export async function getInclusionAndNetworkFee(
 ): Promise<{ inclusionFee: number; networkFee: number }> {
   const code = PLATFORM_ASSET.code.toLocaleLowerCase();
   if (code !== "bandcoin" && code !== "action") {
-    return {
-      inclusionFee: INCLUSION_FEE_IN_PLATFORM_ASSET,
-      networkFee: NETWORK_FEE_IN_PLATFORM_ASSET,
-    };
+    return scaledFixedFee(quantity, accountActive);
   }
   try {
     return await computeLiveInclusionAndNetworkFee({
@@ -160,10 +194,7 @@ export async function getInclusionAndNetworkFee(
       accountActive,
     });
   } catch {
-    return {
-      inclusionFee: INCLUSION_FEE_IN_PLATFORM_ASSET,
-      networkFee: NETWORK_FEE_IN_PLATFORM_ASSET,
-    };
+    return scaledFixedFee(quantity, accountActive);
   }
 }
 
@@ -268,11 +299,15 @@ export function requireContractConstant(value: string, name: string): string {
   return value;
 }
 
-// nft_oz/ft_oz enforce these same caps on-chain (see MAX_PLATFORM_FEE_BPS /
-// MAX_ROYALTY_BPS in both contracts) — mirrored here so the UI/API can reject
-// out-of-range input before ever building a doomed transaction.
+// nft_oz enforces these same caps on-chain (see MAX_PLATFORM_FEE_BPS /
+// MAX_ROYALTY_BPS in `contracts/nft_oz/src/lib.rs`) — mirrored here so the
+// UI/API can reject out-of-range input before ever building a doomed
+// transaction. Keep both sides in step: the royalty ceiling is not a policy
+// number but the largest value that keeps a resale's
+// `seller_amount = total - platform_fee - royalty` non-negative when the
+// platform fee is at its own 10% ceiling.
 export const MAX_PLATFORM_FEE_BPS = 1_000; // 10%
-export const MAX_ROYALTY_BPS = 5_000; // 50%
+export const MAX_ROYALTY_BPS = 9_000; // 90%
 // Target fee going forward (250 -> 350). This is a *display/validation*
 // default only — the actual fee enforced on-chain is whatever's stored in
 // the shared art collection contract's own state (set via `set_platform_fee`

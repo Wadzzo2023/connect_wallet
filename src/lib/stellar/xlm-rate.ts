@@ -115,8 +115,14 @@ const INACTIVE_ACCOUNT_FEES_XLM = {
  *   networkFee   = flat transaction fee for this account state
  * `unitsPerXlm` is however many units of the target currency 1 XLM buys
  * right now (platform-asset units, or USD/USDC dollars).
+ *
+ * Exported so the *fixed* fee table's fallback path can scale by the same
+ * ratios this produces (see `getInclusionAndNetworkFee` in ./constant.ts) —
+ * passing `unitsPerXlm: 1` yields the raw XLM amounts, which is all that
+ * fallback needs to work out how a given quantity/account state compares to
+ * the one-copy active-account baseline the fixed table is calibrated for.
  */
-function applyFeeFormula(
+export function applyFeeFormula(
   unitsPerXlm: number,
   quantity: number,
   accountActive: boolean,
