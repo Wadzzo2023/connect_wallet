@@ -41,65 +41,46 @@ export function stellarExpertUrl(code: string, issuer: string | null | undefined
 }
 
 /**
- * StellarTerm's DEX trading UI for the platform asset against XLM — the
- * wallet-agnostic "go get some" destination for a buyer whose *external*
- * wallet doesn't hold enough of it (see `InsufficientAssetBalance`).
- * Unlike `/recharge`, this works for any external wallet, not a custodial
- * one specifically — it's a link to a public trading page any wallet can
- * connect to and trade from, not an in-app custodial purchase.
- *
- * `null` on testnet: StellarTerm only ever indexes mainnet order books, so
- * there's no working link to offer there.
+ * Where to send an external-wallet buyer who is short on platform asset.
+ * `null` on testnet — StellarTerm only indexes mainnet order books.
  */
 export function stellarTermSwapUrl(): string | null {
   if (!env.NEXT_PUBLIC_STELLAR_PUBNET) return null;
   return `https://stellarterm.com/exchange/${PLATFORM_ASSET.code}-${PLATFORM_ASSET.issuer}/XLM-native`;
 }
 
+
 function calculatePlatformFees(stage: string, assetCode: string) {
   const isProd = stage === "prod";
   const code = assetCode.toLowerCase();
 
-  // Bandcoin uses its production figures on development too, deliberately.
-  // These constants are the *fallback* the live-rate path lands on
-  // (`getInclusionAndNetworkFee` below), and on development that fallback is
-  // effectively always taken: the live rate is looked up on stellar.expert's
-  // public network, which has no entry for development's testnet issuer, so
-  // the lookup fails and the fixed table is used. Leaving development at `1`
-  // meant a purchase there cost ~1 token while the same purchase in
-  // production cost tens of thousands — far too different to catch a pricing
-  // or affordability bug before release.
-
+  // Classic-Stellar fees only. The NFT contract's inclusion/network fee is
+  // separate — see `getInclusionAndNetworkFee`.
+  // Dev uses production's figures so pricing bugs show up before release.
   if (!isProd) {
     switch (code) {
-      case "bandcoin":
-        return { trxBaseFee: "1400", platformFee: "6000", inclusionFee: "49823", networkFee: "3180" };
-      case "action":
-        return { trxBaseFee: "20", platformFee: "35", inclusionFee: "100", networkFee: "50" };
-      default:
-        return { trxBaseFee: "1", platformFee: "1", inclusionFee: "1", networkFee: "1" }; // fallback
+      case "bandcoin": return { trxBaseFee: "1400", platformFee: "6000" };
+      case "action": return { trxBaseFee: "20", platformFee: "35" };
+      default: return { trxBaseFee: "1", platformFee: "1" };
     }
+
   }
 
 
   switch (code) {
     case "wadzzo":
-      return { trxBaseFee: "10", platformFee: "25", inclusionFee: "10", networkFee: "5" };
+      return { trxBaseFee: "10", platformFee: "25", };
     case "bandcoin":
-      // inclusionFee/networkFee are a rough proportional estimate, scaled
-      // from this asset's platformFee/trxBaseFee ratio against "action"'s
-      // (which was measured) — not independently calibrated. Adjust once
-      // real fee-bump costs on bandcoin are observed.
-      return { trxBaseFee: "1400", platformFee: "6000", inclusionFee: "17000", networkFee: "8500" };
+      return { trxBaseFee: "1400", platformFee: "6000" };
     case "action":
-      return { trxBaseFee: "20", platformFee: "35", inclusionFee: "100", networkFee: "50" };
+      return { trxBaseFee: "20", platformFee: "35" };
     default:
-      return { trxBaseFee: "1", platformFee: "1", inclusionFee: "1", networkFee: "1" }; // fallback
+      return { trxBaseFee: "1", platformFee: "1" }; // fallback
   }
 }
 
 // Use calculated values but keep exports unchanged
-const { trxBaseFee, platformFee, inclusionFee, networkFee } = calculatePlatformFees(
+const { trxBaseFee, platformFee } = calculatePlatformFees(
   env.NEXT_PUBLIC_STAGE,
   PLATFORM_ASSET.code.toLocaleLowerCase(),
 );
@@ -107,57 +88,80 @@ const { trxBaseFee, platformFee, inclusionFee, networkFee } = calculatePlatformF
 export const TrxBaseFeeInPlatformAsset = trxBaseFee;
 export const PLATFORM_FEE = platformFee;
 
-// Flat, fixed-rate reimbursement for the real Stellar/Soroban network cost
-// treasury fronts on a buyer's behalf via fee-bump (see
-// `src/lib/stellar/oz/nft.ts`'s fee-bump section and
-// `contracts/nft_oz`'s `buy_edition`/`buy`/`buy_batch`). Human-readable
-// platform-asset units (not raw/stroop units) — convert with
-// `humanPriceToRaw` at the call site. Fixed by design, not derived from a
-// live exchange rate: same reasoning as `PLATFORM_FEE`/
-// `TrxBaseFeeInPlatformAsset` above. Replaces the contract's old on-chain
-// `inclusion_fee()` lookup, which the fee-bump redesign removed in favor of
-// a call-time param the app computes.
+export const STROOP = "0.0000001";
+export const TRUST_XLM = 0.6;
+// Fee for transaction in bandcoin
+// in xlm
+export const PLATFORM_FEE_IN_XLM = 0.005;
+export const trxBaseFeeInXLM = 0.005;
+
+// simplified fee (trxBaseFee + platform fee)
+export const SIMPLIFIED_FEE = 2050; // in bandcoin
+export const SIMPLIFIED_FEE_IN_XLM = 0.01; // in xlm
+
+// =============================================================================
+// Smart contracts (Soroban) — nft_oz / ft_oz / bounty escrow
+// =============================================================================
+
+// Soroban RPC endpoint used to simulate + assemble contract-invocation
+// transactions (bounty escrow, nft_oz/ft_oz mint/list/buy, admin TTL bumps).
+// Submission of the signed envelope still goes through Horizon (STELLAR_URL)
+// via the existing clientsign flow.
+export const SOROBAN_RPC_URL = env.NEXT_PUBLIC_STELLAR_PUBNET
+  ? "https://mainnet.sorobanrpc.com"
+  : "https://soroban-testnet.stellar.org";
+
+// Inclusion fee (stroops) bid for Soroban invokes, on top of the simulated
+// resource fee. The SDK default of 100 expires unconfirmed on mainnet.
+export const SOROBAN_INCLUSION_FEE = env.NEXT_PUBLIC_STELLAR_PUBNET ? "1000000" : "100";
+
+// -----------------------------------------------------------------------------
+// Fee-bump reimbursement — what a buyer pays treasury for fronting the real
+// network cost of their purchase (see `contracts/nft_oz`'s
+// `buy_edition`/`buy`/`buy_batch`). Nothing here is a classic-Stellar fee.
+// -----------------------------------------------------------------------------
+
+/**
+ * Fixed inclusion/network fees, in platform-asset units.
+ *
+ * Used by bandcoin/action on testnet (stellar.expert has no price for a
+ * testnet issuer) and by wadzzo always (never live-priced). bandcoin/action
+ * on pubnet are priced live and never reach this.
+ */
+function fixedInclusionAndNetworkFee(code: string) {
+  switch (code) {
+    case "bandcoin":
+      return { inclusionFee: "49823", networkFee: "3180" };
+    case "action":
+      return { inclusionFee: "100", networkFee: "50" };
+    case "wadzzo":
+      return { inclusionFee: "10", networkFee: "5" };
+    default:
+      return { inclusionFee: "1", networkFee: "1" };
+  }
+}
+
+const { inclusionFee, networkFee } = fixedInclusionAndNetworkFee(
+  PLATFORM_ASSET.code.toLocaleLowerCase(),
+);
+
+// Reimburses treasury for the network cost it fronts via fee-bump. Human
+// units, not stroops — convert with `humanPriceToRaw`.
+//
+// NOT what pubnet charges for bandcoin/action; that is priced live. Use
+// `getInclusionAndNetworkFee` unless you specifically want the fixed table.
 export const INCLUSION_FEE_IN_PLATFORM_ASSET = Number(inclusionFee);
 export const NETWORK_FEE_IN_PLATFORM_ASSET = Number(networkFee);
 
 /**
- * Live-priced counterpart to `INCLUSION_FEE_IN_PLATFORM_ASSET`/
- * `NETWORK_FEE_IN_PLATFORM_ASSET` above — for bandcoin and action only
- * (wadzzo keeps the purely fixed values by design; its own
- * `calculatePlatformFees` entry was never meant to be live-priced, so that
- * branch below isn't a fallback, it's a different asset's actual pricing
- * model). Computes `0.4 XLM * quantity + 0.03 XLM + 0.07 XLM`
- * (wallet-hold/TTL reserve per token, plus the flat transaction and
- * inclusion costs) converted through a live Stellar DEX rate — see
- * `computeLiveInclusionAndNetworkFee` and `getXlmToAssetRate`'s doc
- * comments for the mechanism and the on-chain order-book source.
- *
- * Falls back to `INCLUSION_FEE_IN_PLATFORM_ASSET`/
- * `NETWORK_FEE_IN_PLATFORM_ASSET` — the same production fee table used
- * everywhere else in this file, not a placeholder — when there's no live
- * rate yet (no live-tradeable liquidity currently exists for either asset
- * against XLM, on either network — verified directly against Horizon).
- * `computeLiveInclusionAndNetworkFee` itself still throws rather than
- * guess; this is the one call site that catches that and substitutes a
- * real, already-calibrated number instead of blocking checkout entirely.
- */
-/**
  * The fixed fee table, scaled for a given purchase the same way the live path
  * scales the live rate.
  *
- * `INCLUSION_FEE_IN_PLATFORM_ASSET`/`NETWORK_FEE_IN_PLATFORM_ASSET` are single
- * flat numbers calibrated for one baseline case: buying **one** copy into an
- * **already-active** account. Returning them verbatim for every purchase —
- * which is what the fallback used to do — quoted that one-copy fee no matter
- * how many copies were bought, and ignored the 2.5 XLM account-activation cost
- * an inactive buyer incurs. A 10-copy purchase reimbursed treasury for one
- * copy's ledger reserves and ate the rest.
- *
- * So rather than return the constants raw, scale them by the ratio
- * `applyFeeFormula` itself produces between this purchase and that baseline.
- * Deriving the ratio from the shared formula (rather than re-deriving an
- * implied exchange rate) keeps the fallback exactly in step with the live path
- * for any asset, however its own fixed entry was originally calibrated.
+ * The constants are calibrated for one baseline: one copy into an already-
+ * active account. Returning them raw undercharged every other case — a
+ * 10-copy purchase reimbursed one copy's reserves. So scale them by the ratio
+ * `applyFeeFormula` gives between this purchase and that baseline, which keeps
+ * them in step with the live path.
  */
 function scaledFixedFee(
   quantity: number,
@@ -185,6 +189,7 @@ export async function getInclusionAndNetworkFee(
 ): Promise<{ inclusionFee: number; networkFee: number }> {
   const code = PLATFORM_ASSET.code.toLocaleLowerCase();
   if (code !== "bandcoin" && code !== "action") {
+    // Fixed pricing is this asset's actual model (wadzzo), not a fallback.
     return scaledFixedFee(quantity, accountActive);
   }
   try {
@@ -193,8 +198,15 @@ export async function getInclusionAndNetworkFee(
       quantity,
       accountActive,
     });
-  } catch {
-    return scaledFixedFee(quantity, accountActive);
+  } catch (e) {
+    // Testnet has no live rate at all, so the fixed table is its real pricing.
+    if (!env.NEXT_PUBLIC_STELLAR_PUBNET) {
+      return scaledFixedFee(quantity, accountActive);
+    }
+    // Pubnet fails closed, like `getInclusionAndNetworkFeeInUsd`. A frozen
+    // number drifts, and custodial buyers never see the fee their server
+    // signs for — a silent overcharge is worse than a blocked checkout.
+    throw e;
   }
 }
 
@@ -243,55 +255,14 @@ export async function getAccountActivationCostInUsd(): Promise<number> {
   return ACCOUNT_ACTIVATION_COST_XLM * rate;
 }
 
-export const STROOP = "0.0000001";
-export const TRUST_XLM = 0.6;
-// Fee for transaction in bandcoin
-// in xlm
-export const PLATFORM_FEE_IN_XLM = 0.005;
-export const trxBaseFeeInXLM = 0.005;
-
-// simplified fee (trxBaseFee + platform fee)
-export const SIMPLIFIED_FEE = 2050; // in bandcoin
-export const SIMPLIFIED_FEE_IN_XLM = 0.01; // in xlm
-
-// =============================================================================
-// Smart contracts (Soroban) — nft_oz / ft_oz / bounty escrow
-// =============================================================================
-
-// Soroban RPC endpoint used to simulate + assemble contract-invocation
-// transactions (bounty escrow, nft_oz/ft_oz mint/list/buy, admin TTL bumps).
-// Submission of the signed envelope still goes through Horizon (STELLAR_URL)
-// via the existing clientsign flow.
-export const SOROBAN_RPC_URL = env.NEXT_PUBLIC_STELLAR_PUBNET
-  ? "https://mainnet.sorobanrpc.com"
-  : "https://soroban-testnet.stellar.org";
-
-// Inclusion fee (stroops) bid for Soroban contract-invoke transactions. The
-// SDK's bare default (100 stroops) isn't competitive enough to get picked up
-// for inclusion under current mainnet congestion — verified empirically that
-// transactions sit unconfirmed and expire at that default, while 1,000,000
-// stroops gets included. This is added on top of the simulated resource fee,
-// not a replacement for it.
-export const SOROBAN_INCLUSION_FEE = env.NEXT_PUBLIC_STELLAR_PUBNET ? "1000000" : "100";
-
-// Added to the Square charge on a card/USD checkout, on top of the item's
-// USD sticker price — this is the one place a flat fee surcharge can
-// actually be collected without leaking: a Square charge is a single number
-// that lands directly in the platform's account, never split by the
-// contract the way an on-chain total would be. The Platform-Asset checkout
-// path instead recovers this atomically on-chain via the contract's own
-// `inclusion_fee`/`network_fee` (see `contracts/nft_oz`), which a USD
-// purchase can't use since the treasury is the one funding that leg in the
-// first place — Square collects the equivalent in USD instead, split into
-// these two flat line items to mirror the Platform-Asset breakdown's own
-// two rows.
+// Added to a card/USD Square charge. The platform-asset path recovers this
+// on-chain instead via the contract's `inclusion_fee`/`network_fee`; a USD
+// purchase can't, since treasury funds that leg itself.
 export const INCLUSION_FEE_IN_USD = 0.05;
 export const NETWORK_FEE_IN_USD = 0.1;
 
-// Some contract addresses in `~/lib/common` are only known once
-// `pnpm contracts:deploy` has run for a given network (pubnet starts blank).
-// Call sites that build a contract-invoke XDR need a hard failure rather than
-// silently sending to an empty contract id.
+// Contract ids in `~/lib/common` are blank until deployed for that network.
+// Fail loudly rather than send an invoke to an empty id.
 export function requireContractConstant(value: string, name: string): string {
   if (!value) {
     throw new Error(`${name} is not set — deploy the contract for this network first.`);
@@ -299,28 +270,18 @@ export function requireContractConstant(value: string, name: string): string {
   return value;
 }
 
-// nft_oz enforces these same caps on-chain (see MAX_PLATFORM_FEE_BPS /
-// MAX_ROYALTY_BPS in `contracts/nft_oz/src/lib.rs`) — mirrored here so the
-// UI/API can reject out-of-range input before ever building a doomed
-// transaction. Keep both sides in step: the royalty ceiling is not a policy
-// number but the largest value that keeps a resale's
-// `seller_amount = total - platform_fee - royalty` non-negative when the
-// platform fee is at its own 10% ceiling.
+// Mirrors nft_oz's on-chain caps so the UI can reject bad input early — keep
+// both in step. The royalty ceiling isn't policy: it's the largest value
+// keeping `seller_amount` non-negative at the 10% platform-fee ceiling.
 export const MAX_PLATFORM_FEE_BPS = 1_000; // 10%
 export const MAX_ROYALTY_BPS = 9_000; // 90%
-// Target fee going forward (250 -> 350). This is a *display/validation*
-// default only — the actual fee enforced on-chain is whatever's stored in
-// the shared art collection contract's own state (set via `set_platform_fee`
-// / the `admin.platformFee` mutation). Bumping this constant does NOT by
-// itself change what real purchases are charged; someone with admin access
-// still needs to run that mutation once against the live (shared with
-// actionverse) contract before this value and reality agree.
+// Display/validation default only. Real purchases are charged whatever the
+// contract stores — changing this does nothing until `set_platform_fee` runs
+// against the live contract.
 export const DEFAULT_PLATFORM_FEE_BPS = 100; // 1%
 
-// The contracts' `price`/`total_price` fields are i128 amounts in the payment
-// token's raw (stroop-like) units. Stellar assets use 7 decimal places by
-// convention, so this is the single conversion point between that and the
-// human-readable price shown/entered in the UI.
+// Contract prices are i128 raw units; Stellar assets use 7 decimals. Single
+// conversion point between those and the human prices shown in the UI.
 export const PAYMENT_TOKEN_DECIMALS = 7;
 export const PAYMENT_TOKEN_SCALE = 10_000_000; // 10 ** PAYMENT_TOKEN_DECIMALS
 

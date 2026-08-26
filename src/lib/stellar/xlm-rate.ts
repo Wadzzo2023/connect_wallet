@@ -2,23 +2,12 @@ import axios from "axios";
 import { type Asset } from "@stellar/stellar-sdk";
 
 /**
- * Live USD price for a Stellar classic asset, via stellar.expert's asset
- * endpoint — used for both the platform asset and XLM itself. Always hits
- * the `public` (mainnet) network regardless of which network this app is
- * otherwise pointed at, matching the app's own `getXLMPrice`/`getAssetPrice`
- * (`src/lib/stellar/fan/get_token_price.ts`) — testnet has no real market
- * to price against, and Bandcoin/Action are mainnet-only assets anyway.
+ * Live USD price for a classic asset, from stellar.expert. Always queries
+ * the `public` network — testnet has no real market, and this 404s for a
+ * testnet issuer.
  *
- * This replaces an earlier version of this file that queried Horizon's
- * classic DEX order book directly: Bandcoin and Action both have an empty
- * order book on Horizon right now (verified directly, zero live asks/bids)
- * so that approach always returned `null` in practice. stellar.expert still
- * reports a real, non-zero `price` for both — derived from trade history,
- * not live order-book depth — confirmed directly against
- * `api.stellar.expert/explorer/public/asset/BANDCOIN-<issuer>` before
- * switching. Throws (never returns a fixed guess) if the asset isn't found
- * there or the endpoint is unreachable — callers decide what to do about
- * that.
+ * Not Horizon's DEX order book: bandcoin and action both have empty ones.
+ * Throws rather than guessing; callers decide what to do.
  */
 async function fetchStellarExpertPrice(assetPathSegment: string): Promise<number> {
   const response = await axios.get<{ price: number }>(
@@ -87,25 +76,17 @@ export async function getXlmToAssetRate(asset: Asset): Promise<number | null> {
     assetRateCache.set(key, { rate, fetchedAt: Date.now() });
     return rate;
   } catch {
-    // stellar.expert hiccup, or the asset genuinely isn't listed there —
-    // reuse a stale cached rate rather than fail the whole fee computation
-    // over a transient or missing lookup.
+    // Reuse a stale rate rather than fail over a transient lookup.
     return cached?.rate ?? null;
   }
 }
 
-// Per-token XLM cost of the ledger entry/TTL reserve each newly-minted
-// copy needs ("wallet hold" fee) — scales with quantity, same for both
-// account states below (creating N token ledger entries costs the same
-// whether or not the buyer's own account needed activating first).
+// Per-token ledger entry/TTL reserve ("wallet hold"). Scales with quantity,
+// and is the same whether or not the buyer's account needed activating.
 const WALLET_HOLD_FEE_PER_TOKEN_XLM = 0.4;
 
-// Flat, per-transaction XLM costs, split by whether the buyer's Stellar
-// account is already active (has a funded account + the platform asset's
-// trustline) or needs both established as part of this same purchase.
-// The inactive-account numbers are higher because that one transaction
-// bundles more operations (create-account + change-trust + the purchase
-// itself), which costs more real network fee to include.
+// Flat per-transaction XLM costs. The inactive-account numbers are higher
+// because that transaction also bundles create-account and change-trust.
 const ACTIVE_ACCOUNT_FEES_XLM = {
   transactionFee: 0.03,
   inclusionFee: 0.07,
@@ -115,9 +96,7 @@ const ACTIVE_ACCOUNT_FEES_XLM = {
 const INACTIVE_ACCOUNT_FEES_XLM = {
   transactionFee: 0.04,
   inclusionFee: 0.09,
-  // Flat, one-time: creating the account (network's minimum reserve) plus
-  // establishing the platform asset's trustline — not scaled by quantity,
-  // same as the transaction/inclusion fees above.
+  // One-time: account minimum reserve plus the trustline. Not per-token.
   activationFee: 2.5,
 };
 
@@ -228,18 +207,10 @@ export async function computeLiveInclusionAndNetworkFee({
 }
 
 // =============================================================================
-// USD / USDC — 1 USDC = 1 USD by definition, so "XLM units per USDC" is the
-// same number as "XLM price in USD". Sourced from stellar.expert's XLM
-// asset endpoint (`fetchStellarExpertPrice` above), matching the existing
-// `getXLMPrice` in `src/lib/stellar/fan/get_token_price.ts` — NOT Binance:
-// Binance blocks API access from this app's production hosting IP range
-// (confirmed by a live 500 on `getInclusionAndNetworkFeeInUsdPreview` on
-// mainnet, while the exact same request succeeds from an unrelated
-// network), so a CEX ticker that reads fine in development is not actually
-// reliable in production here. This file doesn't import the app-level
-// function directly (this is the shared submodule; app code depends on it,
-// not the other way around) — it re-implements the same call against the
-// same public endpoint.
+// USD / USDC — 1 USDC = 1 USD, so "XLM per USDC" is XLM's USD price.
+//
+// From stellar.expert, not Binance: Binance blocks this app's production
+// hosting IPs, so it works in dev and 500s on mainnet.
 // =============================================================================
 
 const USD_REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
