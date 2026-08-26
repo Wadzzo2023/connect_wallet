@@ -68,6 +68,22 @@ export async function getXlmToAssetRate(asset: Asset): Promise<number | null> {
       fetchStellarExpertPrice(`${asset.getCode()}-${asset.getIssuer()}`),
     ]);
     const rate = xlmUsd / assetUsd;
+    if (!Number.isFinite(rate) || rate <= 0) {
+      throw new Error(`Computed a non-finite rate for ${asset.getCode()}: ${rate}`);
+    }
+    // A rate that has moved by more than an order of magnitude since the last
+    // good one is treated as bad data, not as a real market move. The fee this
+    // feeds is `XLM amount * rate`, charged to a buyer whose server signs for
+    // them without a human seeing the number, so a mispriced endpoint response
+    // — wrong units, a stale zero, one asset briefly delisted — would go
+    // straight through. Real moves of this size do not happen between two
+    // five-minute polls; a broken response does. The stale cached rate is the
+    // safer answer, and it is what the `catch` below already falls back to.
+    if (cached && (rate > cached.rate * 10 || rate < cached.rate / 10)) {
+      throw new Error(
+        `Rejecting implausible ${asset.getCode()} rate ${rate} (cached ${cached.rate})`,
+      );
+    }
     assetRateCache.set(key, { rate, fetchedAt: Date.now() });
     return rate;
   } catch {
@@ -130,10 +146,52 @@ export function applyFeeFormula(
   const fees = accountActive ? ACTIVE_ACCOUNT_FEES_XLM : INACTIVE_ACCOUNT_FEES_XLM;
   const inclusionFeeXlm =
     fees.inclusionFee + fees.activationFee + WALLET_HOLD_FEE_PER_TOKEN_XLM * quantity;
+  const networkFeeXlm = fees.transactionFee;
+
+  assertWithinFormulaCeiling(inclusionFeeXlm, networkFeeXlm, quantity);
+
   return {
     inclusionFee: inclusionFeeXlm * unitsPerXlm,
-    networkFee: fees.transactionFee * unitsPerXlm,
+    networkFee: networkFeeXlm * unitsPerXlm,
   };
+}
+
+/**
+ * The worst case this formula can legitimately produce, in XLM: an inactive
+ * account buying the contract's per-call maximum of 20 copies —
+ * `0.09 + 2.5 + (0.4 * 20) + 0.04` ≈ 10.63. Rounded up to a deliberately
+ * loose ceiling, because its job is to bound a bug's blast radius rather than
+ * to price anything.
+ *
+ * Hardcoded rather than derived from the constants above, and that is the
+ * whole point: a ceiling computed from the same numbers it is checking would
+ * move with them and catch nothing. This is the one bound that does not
+ * depend on either the fee constants or the live exchange rate, so it still
+ * holds when one of those is what went wrong.
+ *
+ * The fee is ultimately `XLM amount * live rate`, and a wrong fee can come
+ * from either side. This guards the formula half; `getXlmToAssetRate` guards
+ * the rate half. Neither can cover for the other.
+ */
+const MAX_FORMULA_OUTPUT_XLM = 15;
+
+function assertWithinFormulaCeiling(
+  inclusionFeeXlm: number,
+  networkFeeXlm: number,
+  quantity: number,
+): void {
+  const total = inclusionFeeXlm + networkFeeXlm;
+  if (!Number.isFinite(total) || total <= 0) {
+    throw new Error(
+      `Fee formula produced a non-finite or non-positive total (${total}) for quantity ${quantity}`,
+    );
+  }
+  if (total > MAX_FORMULA_OUTPUT_XLM) {
+    throw new Error(
+      `Fee formula produced ${total} XLM for quantity ${quantity}, above the ` +
+        `${MAX_FORMULA_OUTPUT_XLM} XLM ceiling — refusing to price a purchase from it`,
+    );
+  }
 }
 
 /**
