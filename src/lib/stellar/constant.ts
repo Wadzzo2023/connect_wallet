@@ -211,11 +211,16 @@ export async function getInclusionAndNetworkFeeInUsd(
  * Real XLM cost of silently activating a custodial card buyer's account
  * and establishing its Platform Asset trustline in one step — see
  * `ensureBuyerActivatedAndTrustedForCardPurchase` in
- * `~/lib/stellar/oz/nft.ts`, which spends exactly this much treasury XLM.
- * This is Stellar's own minimum reserve for an account holding one
- * trustline, not a padded estimate: (2 base reserves + 1 entry) * 0.5 XLM.
+ * `~/lib/stellar/oz/nft.ts`.
+ *
+ * Stellar's own minimum for an account holding one trustline is 1.5 XLM
+ * ((2 base reserves + 1 entry) x 0.5). The extra 1 XLM is spendable
+ * headroom funded into the buyer's account (see
+ * `ACCOUNT_ACTIVATION_RESERVE_XLM` in `~/lib/stellar/oz/nft.ts`, which this
+ * must match) rather than left pinned at the bare floor with nothing
+ * spendable — and it covers the setup transaction's own cost.
  */
-export const ACCOUNT_ACTIVATION_COST_XLM = 1.5;
+export const ACCOUNT_ACTIVATION_COST_XLM = 2.5;
 
 /**
  * USD-equivalent of `ACCOUNT_ACTIVATION_COST_XLM` right now, via the live

@@ -93,16 +93,18 @@ const WALLET_HOLD_FEE_PER_TOKEN_XLM = 0.4;
 const ACTIVE_ACCOUNT_FEES_XLM = {
   transactionFee: 0.03,
   inclusionFee: 0.07,
-  // No separate activation cost — the account and trustline already exist.
-  activationFee: 0,
 };
+// Higher than the active pair because that one transaction also bundles
+// create-account and change-trust, which costs more to include.
+//
+// Deliberately no activation cost here. The account reserve and trustline
+// cost is charged separately, as its own visible line
+// (`ACCOUNT_ACTIVATION_COST_XLM` in `./constant`), so a buyer can see what it
+// is rather than finding it inside "Network fee". Folding it in here too
+// would bill it twice.
 const INACTIVE_ACCOUNT_FEES_XLM = {
   transactionFee: 0.04,
   inclusionFee: 0.09,
-  // Flat, one-time: creating the account (network's minimum reserve) plus
-  // establishing the platform asset's trustline — not scaled by quantity,
-  // same as the transaction/inclusion fees above.
-  activationFee: 2.5,
 };
 
 /**
@@ -122,8 +124,7 @@ function applyFeeFormula(
   accountActive: boolean,
 ): { inclusionFee: number; networkFee: number } {
   const fees = accountActive ? ACTIVE_ACCOUNT_FEES_XLM : INACTIVE_ACCOUNT_FEES_XLM;
-  const inclusionFeeXlm =
-    fees.inclusionFee + fees.activationFee + WALLET_HOLD_FEE_PER_TOKEN_XLM * quantity;
+  const inclusionFeeXlm = fees.inclusionFee + WALLET_HOLD_FEE_PER_TOKEN_XLM * quantity;
   return {
     inclusionFee: inclusionFeeXlm * unitsPerXlm,
     networkFee: fees.transactionFee * unitsPerXlm,
