@@ -228,6 +228,15 @@ export async function getInclusionAndNetworkFeeInUsd(
 }
 
 /**
+ * What an inactive buyer is charged for having their account and trustline
+ * created — the "2.5 XLM (Account active fee + Platform token trust fee)" line
+ * in the fee plan.
+ *
+ * Stellar's own minimum for an account holding one trustline is 1.5 XLM
+ * ((2 base reserves + 1 entry) x 0.5). The extra covers the transaction costs
+ * of the setup itself and leaves the buyer a small starting balance, so
+ * treasury is not left short on every new account.
+ *
  * Real XLM cost of silently activating a custodial card buyer's account
  * and establishing its Platform Asset trustline in one step — see
  * `ensureBuyerActivatedAndTrustedForCardPurchase` in
@@ -236,7 +245,7 @@ export async function getInclusionAndNetworkFeeInUsd(
  * for an account holding one trustline, not a padded estimate: (2 base
  * reserves + 1 entry) * 0.5 XLM.
  */
-export const ACCOUNT_ACTIVATION_COST_XLM = 1.5;
+export const ACCOUNT_ACTIVATION_COST_XLM = 2.5;
 
 /**
  * USD-equivalent of `ACCOUNT_ACTIVATION_COST_XLM` right now, via the live
