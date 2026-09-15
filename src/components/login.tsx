@@ -19,7 +19,7 @@ import { WalletType } from "../lib/enums";
 import { auth } from "../lib/firebase/firebase-auth";
 import { Button } from "../shadcn/ui/button";
 import { handleFireBaseAuthError } from "./firebase-error";
-import { Input } from "~/components/shadcn/ui/input";
+import { Input } from "../shadcn/ui/input";
 
 const formSchema = z.object({
   email: z.string().email("Please enter a valid email"),

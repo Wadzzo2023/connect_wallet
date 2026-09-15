@@ -4,7 +4,7 @@ import { LogOut } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { addrShort } from "../lib/utils";
 import { useDialogStore } from "../state/connect_wallet_dialog";
-import { Button } from "~/components/shadcn/ui/button";
+import { Button } from "../shadcn/ui/button";
 
 export default function ConnectWalletButton({ text }: { text?: string }) {
   const session = useSession();

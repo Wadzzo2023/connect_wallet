@@ -9,8 +9,8 @@ import toast from "react-hot-toast"
 import { z } from "zod"
 import { type AuthError, sendPasswordResetEmail } from "firebase/auth"
 
-import { Button } from "~/components/shadcn/ui/button"
-import { Input } from "~/components/shadcn/ui/input"
+import { Button } from "../shadcn/ui/button";
+import { Input } from "../shadcn/ui/input";
 import { auth } from "../lib/firebase/firebase-auth";
 import { useResetPasswordStore } from "../store/reset-password-store"
 
