@@ -27,6 +27,7 @@ import { Button } from "../shadcn/ui/button";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { Dialog, DialogContent, DialogTitle } from "../shadcn/ui/dialog";
+import { AR_APP_FRAME_SELECTOR } from "../lib/host-frame";
 import SignUpForm from "./sign_up";
 import LoginForm from "./login";
 import ForgotPasswordForm from "./forget-password";
@@ -104,6 +105,15 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
   const isIosFBuser = useFacebookiOSUserAgent();
   const session = useSession();
   const [loading, setLoading] = useState(false);
+
+  // True only inside wadzzoAR's phone-shaped device frame (see the note on
+  // AR_APP_FRAME_SELECTOR) — everywhere else this package is used, including
+  // any other project sharing this same submodule, `isFramedHost` stays
+  // false and the dialog keeps its original wide two-column layout below.
+  const [isFramedHost, setIsFramedHost] = useState(false);
+  useEffect(() => {
+    setIsFramedHost(!!document.querySelector(AR_APP_FRAME_SELECTOR));
+  }, []);
 
   const checkAccountActivity = useCallback(async (publicKey: string) => {
     setAccountActivateLoading(true);
@@ -410,7 +420,15 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
             tooltip={toolTipsAddr(WalletType.hotWallet)}
             imageUrl="https://storage.herewallet.app/logo.png"
           />
-          <div className="lg:hidden">
+          {/* Complementary with the right panel's own Lobstr button, not
+              redundant with it: this tile is the ONLY way to reach
+              Lobstr/WalletConnect once that panel is narrow (`lg:hidden`,
+              real viewport) or hidden outright for the framed host, which
+              has no viewport width at which the panel ever reappears. Without
+              the `isFramedHost` half of this condition, a framed host
+              reviewed at normal desktop width — which is how this app is
+              meant to be looked at — would show Lobstr in neither place. */}
+          <div className={isFramedHost ? undefined : "lg:hidden"}>
             <WCButton toolTipsAddr={toolTipsAddr} selectedWallet={selectedWallet} text="Lobstr" inGrid />
           </div>
         </div>
@@ -433,8 +451,27 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
           </div>
         </DialogContent>
       ) : (
-        /* Main two-column dialog — inlined to prevent remounting */
-        <DialogContent className={clsx("flex max-w-[800px] gap-0 overflow-hidden p-0 lg:grid lg:grid-cols-[1fr_280px]", authUser ? "h-[85vh]" : "h-[80vh]")}>
+        /* Main dialog — inlined to prevent remounting.
+           Two layouts, chosen by `isFramedHost`: the original wide
+           two-column grid (unchanged, for every other consumer of this
+           shared package), or a single column capped to a phone-comfortable
+           width for wadzzoAR's device frame — Tailwind's `lg:` variants key
+           off the real browser viewport, not that frame's width, so left
+           alone the two-column grid would still activate on any wide screen
+           and cram a 280px side panel into a ~400px box. */
+        <DialogContent
+          className={
+            isFramedHost
+              ? clsx(
+                  "mx-auto flex w-full max-w-[420px] flex-col gap-0 overflow-hidden p-0",
+                  authUser ? "h-[85vh]" : "h-[80vh]",
+                )
+              : clsx(
+                  "flex max-w-[800px] gap-0 overflow-hidden p-0 lg:grid lg:grid-cols-[1fr_280px]",
+                  authUser ? "h-[85vh]" : "h-[80vh]",
+                )
+          }
+        >
           {/* ── Left panel ── */}
           <div className={clsx("flex min-h-0 flex-1 w-full flex-col overflow-y-auto", authUser ? "gap-3 px-4 pb-4 pt-10 sm:p-4 lg:p-5" : "gap-5 p-6 lg:p-8")}>
             {/* Unverified email banner */}
@@ -513,8 +550,23 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
             )}
           </div>
 
-          {/* ── Right panel ── */}
-          <div className="relative hidden flex-col overflow-hidden rounded-r-lg bg-accent lg:flex">
+          {/* ── Right panel ──
+              Desktop-only marketing panel (QR code, "scan to connect") from
+              the original wide two-column layout. Hidden outright in the
+              framed host rather than left on its original `lg:flex` trigger,
+              since that keys off the real browser viewport and would still
+              fire on any wide screen even though the dialog itself no longer
+              renders as a two-column box there. Nothing is lost when it's
+              hidden: Lobstr/WalletConnect is still the "Lobstr" tile in the
+              Stellar wallet grid below (`WCButton ... inGrid`). Every other
+              consumer of this shared package keeps the original panel. */}
+          <div
+            className={
+              isFramedHost
+                ? "hidden"
+                : "relative hidden flex-col overflow-hidden rounded-r-lg bg-accent lg:flex"
+            }
+          >
             <div className="p-6 pb-3">
               <p className="text-xs font-semibold uppercase tracking-widest text-accent-foreground/60">
                 Scan to connect

@@ -155,7 +155,10 @@ export function parseStellarError(error: any): StellarErrorResponse {
                     .filter(({ op }) => op !== "op_success");
 
                 if (failedOps.length > 0) {
-                    const firstError = failedOps[0];
+                    // `noUncheckedIndexedAccess` (on in the consuming app's
+                    // tsconfig) can't see that the length check above already
+                    // guarantees this element exists.
+                    const firstError = failedOps[0]!;
                     const errorMessage = OPERATION_ERROR_MESSAGES[firstError.op] ||
                         `Operation ${firstError.index + 1} failed: ${firstError.op}`;
 

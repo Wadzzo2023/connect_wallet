@@ -3,12 +3,46 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 
 import { cn } from "~/lib/utils";
+// Relative, not "~/" — unlike `~/lib/utils` above (which this file, scaffolded
+// by the shadcn CLI, expects the *host app* to provide, and both wadzz0 and
+// wadzzoAR happen to), host-frame.ts is internal to this package itself.
+import { AR_APP_FRAME_SELECTOR } from "../../lib/host-frame";
 
 const Dialog = DialogPrimitive.Root;
 
 const DialogTrigger = DialogPrimitive.Trigger;
 
-const DialogPortal = DialogPrimitive.Portal;
+/**
+ * Some hosts of this shared package (wadzzoAR) render as a phone-shaped
+ * device frame rather than a full-page layout — a Radix `Portal` with no
+ * explicit container renders into `document.body` by default, which is an
+ * ordinary desktop-centred modal spanning the whole browser window rather
+ * than something shaped like the rest of that app.
+ *
+ * `AR_APP_FRAME_SELECTOR` targets that host's own screen container (see
+ * `DeviceFrame.tsx`), which is also given a `transform` so it becomes the
+ * containing block for this dialog's `fixed` positioning — the pair only
+ * works together. Falls back to Radix's own default (`document.body`) via
+ * `undefined` when that element isn't found, which is what keeps this exact
+ * same file correct in every other project sharing this submodule: nothing
+ * here is wadzzoAR-only, it just adapts when that one attribute is present.
+ */
+const DialogPortal = ({
+  children,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Portal>) => {
+  const [container, setContainer] = React.useState<HTMLElement | null>(null);
+
+  React.useEffect(() => {
+    setContainer(document.querySelector<HTMLElement>(AR_APP_FRAME_SELECTOR));
+  }, []);
+
+  return (
+    <DialogPrimitive.Portal container={container ?? undefined} {...props}>
+      {children}
+    </DialogPrimitive.Portal>
+  );
+};
 
 const DialogClose = DialogPrimitive.Close;
 
