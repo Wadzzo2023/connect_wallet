@@ -153,8 +153,8 @@ export function parseStellarError(error: any): StellarErrorResponse {
                     .map((op, index) => ({ op, index }))
                     .filter(({ op }) => op !== "op_success");
 
-                if (failedOps.length > 0) {
-                    const firstError = failedOps[0];
+                const [firstError] = failedOps;
+                if (firstError) {
                     const errorMessage = OPERATION_ERROR_MESSAGES[firstError.op] ||
                         `Operation ${firstError.index + 1} failed: ${firstError.op}`;
 
