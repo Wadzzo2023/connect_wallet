@@ -1,3 +1,5 @@
+"use client";
+
 import { xBullWalletConnect } from "@creit.tech/xbull-wallet-connect";
 import toast from "react-hot-toast";
 

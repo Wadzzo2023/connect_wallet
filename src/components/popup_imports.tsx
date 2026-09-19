@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { useWCIStore } from "../state/wallect_connect_import";

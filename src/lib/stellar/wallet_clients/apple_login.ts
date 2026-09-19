@@ -1,3 +1,5 @@
+"use client";
+
 import { OAuthProvider, signInWithPopup } from "firebase/auth";
 
 import axios from "axios";

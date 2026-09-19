@@ -1,3 +1,5 @@
+"use client";
+
 import { AuthErrorCodes } from "firebase/auth";
 import toast from "react-hot-toast";
 

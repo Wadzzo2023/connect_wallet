@@ -1,3 +1,5 @@
+"use client";
+
 import freighter, { signTransaction } from "@stellar/freighter-api";
 import toast from "react-hot-toast";
 

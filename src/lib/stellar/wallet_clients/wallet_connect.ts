@@ -1,3 +1,5 @@
+"use client";
+
 /* eslint-disable */
 import SignClient from "@walletconnect/sign-client";
 import { getSdkError } from "@walletconnect/utils";

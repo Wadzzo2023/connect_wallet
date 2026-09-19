@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { DocumentDuplicateIcon, SignalSlashIcon } from "@heroicons/react/24/solid";
@@ -25,7 +27,7 @@ import useFacebookiOSUserAgent from "./hook";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../shadcn/ui/tabs";
 import { Button } from "../shadcn/ui/button";
 import Image from "next/image";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { Dialog, DialogContent, DialogTitle } from "../shadcn/ui/dialog";
 import SignUpForm from "./sign_up";
 import LoginForm from "./login";
@@ -123,7 +125,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
 
   const disconnectWallet = useCallback(async () => {
     await signOut({ redirect: false });
-    router.reload();
+    router.refresh();
   }, [router]);
 
   function toolTipsAddr(walletType: WalletType) {
@@ -534,8 +536,10 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
             </div>
 
             <div className="p-6 pt-3">
-              <button
-                onClick={() => router.push("https://github.com/Lobstrco/lobstr-browser-extension/tree/main")}
+              <a
+                href="https://github.com/Lobstrco/lobstr-browser-extension/tree/main"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex w-full items-center gap-3 rounded-xl border border-accent-foreground/20 bg-accent-foreground/10 px-3 py-2.5 text-left transition-colors hover:bg-accent-foreground/20"
               >
                 <Image src="/images/icons/labstr.png" alt="Lobstr" width={32} height={32} className="flex-shrink-0 rounded-full" />
@@ -543,7 +547,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
                   <p className="text-[10px] uppercase tracking-widest text-accent-foreground/60">Works with</p>
                   <p className="text-sm font-semibold text-accent-foreground">Lobstr Mobile App</p>
                 </div>
-              </button>
+              </a>
             </div>
           </div>
         </DialogContent>

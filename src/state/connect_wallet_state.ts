@@ -1,3 +1,5 @@
+"use client";
+
 import { deleteCookie, setCookie } from "cookies-next";
 import { create } from "zustand";
 import { devtools, persist, subscribeWithSelector } from "zustand/middleware";

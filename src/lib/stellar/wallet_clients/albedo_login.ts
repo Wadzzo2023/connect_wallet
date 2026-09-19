@@ -1,3 +1,5 @@
+"use client";
+
 import albedo, { type PublicKeyIntentResult } from "@albedo-link/intent";
 import toast from "react-hot-toast";
 
