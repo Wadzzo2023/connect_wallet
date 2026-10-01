@@ -1,31 +1,33 @@
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { OAuthProvider, signInWithPopup } from "firebase/auth";
 
 import axios from "axios";
 import toast from "react-hot-toast";
 
-import { ProviderNextLogin } from "~/utils/next-login";
+import { ProviderAppleLogin, ProviderNextLogin } from "~/utils/next-login";
 import { WalletType } from "../../../lib/enums";
 import { auth } from "../../../lib/firebase/firebase-auth";
 import { USER_ACCOUNT_URL } from "../constant";
 import { getPublicKeyAPISchema } from "./type";
 import { submitActiveAcountXdr } from "./utils";
 
-export async function googleLogin() {
-  const provider = new GoogleAuthProvider();
-  provider.addScope("https://www.googleapis.com/auth/userinfo.email");
+export async function appleLogin() {
+  const provider = new OAuthProvider("apple.com");
+  provider.addScope("email");
+  provider.addScope("name");
 
   try {
     const user = (await signInWithPopup(auth, provider)).user;
-    const { email } = user.providerData[0]!;
+    const email = user.email;
+    // const { email, uid } = user.providerData[0]!;
     // const email = user.email;
     if (email) {
       const idToken = await user.getIdToken();
 
       const loginRes = await toast.promise(
-        ProviderNextLogin({
+        ProviderAppleLogin({
           email,
           token: idToken,
-          walletType: WalletType.google,
+          walletType: WalletType.apple,
         }),
         { error: "Login error", loading: "Please Wait", success: null },
       );
@@ -51,14 +53,12 @@ export async function googleLogin() {
           },
         );
 
-        const { publicKey, extra } = await getPublicKeyAPISchema.parseAsync(
-          res.data,
-        );
+        const { extra } = await getPublicKeyAPISchema.parseAsync(res.data);
 
         await submitActiveAcountXdr(extra);
       }
     } else {
-      toast.error("Email dont exist");
+      toast.error("Please share you email with us. without we can't proceed");
     }
 
     // await NextLogin(publicKey, publicKey);
