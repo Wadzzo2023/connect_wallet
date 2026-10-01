@@ -247,7 +247,8 @@ export async function walletConnectSignTransactionSubmitterWrapper(
   }
 }
 
-declare global {
+// React 19 keeps JSX in the react module, so the custom element is declared there.
+declare module "react" {
   namespace JSX {
     interface IntrinsicElements {
       "w3m-modal": Partial<W3mModal>;

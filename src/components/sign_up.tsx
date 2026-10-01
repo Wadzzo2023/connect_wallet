@@ -96,7 +96,7 @@ export default function SignUpForm({ onSuccess }: SignUpFormProps) {
           <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="email"
-            disabled={registerMutation.isLoading}
+            disabled={registerMutation.isPending}
             required
             {...register("email")}
             placeholder="Email address"
@@ -111,7 +111,7 @@ export default function SignUpForm({ onSuccess }: SignUpFormProps) {
           <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="password"
-            disabled={registerMutation.isLoading}
+            disabled={registerMutation.isPending}
             required
             {...register("password")}
             placeholder="Password"
@@ -126,7 +126,7 @@ export default function SignUpForm({ onSuccess }: SignUpFormProps) {
           <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="password"
-            disabled={registerMutation.isLoading}
+            disabled={registerMutation.isPending}
             required
             {...register("confirmPassword")}
             placeholder="Confirm password"
@@ -142,8 +142,8 @@ export default function SignUpForm({ onSuccess }: SignUpFormProps) {
         </p>
       )}
 
-      <Button disabled={registerMutation.isLoading} type="submit" className="w-full rounded-xl py-2.5">
-        {registerMutation.isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      <Button disabled={registerMutation.isPending} type="submit" className="w-full rounded-xl py-2.5">
+        {registerMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         Create Account
       </Button>
     </form>

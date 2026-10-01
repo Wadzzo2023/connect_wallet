@@ -1,16 +1,16 @@
 import React from "react";
-import toast from "react-hot-toast";
+import toast, { type Toast } from "react-hot-toast";
 import { DocumentDuplicateIcon } from "@heroicons/react/24/solid";
 import { addrShort } from "../../../lib/utils";
 
 export function showFundAccountToast(pubkey: string) {
   toast.custom(
-    (t) => (
+    (t: Toast) => (
       <div
         style={{ opacity: t.visible ? 1 : 0, transition: "opacity 150ms ease" }}
         className="flex w-full max-w-sm items-start gap-3 rounded-xl border border-amber-200 bg-white p-4 shadow-lg dark:border-amber-800 dark:bg-zinc-900"
       >
-        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/40">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/40">
           <svg
             className="h-4 w-4 text-amber-600 dark:text-amber-400"
             viewBox="0 0 24 24"
@@ -45,7 +45,7 @@ export function showFundAccountToast(pubkey: string) {
                   error: "Failed to copy",
                 });
               }}
-              className="flex-shrink-0 rounded p-0.5 text-zinc-400 transition-colors hover:text-zinc-700 dark:hover:text-zinc-200"
+              className="shrink-0 rounded p-0.5 text-zinc-400 transition-colors hover:text-zinc-700 dark:hover:text-zinc-200"
               title="Copy full address"
             >
               <DocumentDuplicateIcon className="h-3.5 w-3.5" />

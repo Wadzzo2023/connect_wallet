@@ -102,7 +102,7 @@ export default function LoginForm({ onForgotPassword }: LoginFormProps) {
           <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="email"
-            disabled={loginMutation.isLoading}
+            disabled={loginMutation.isPending}
             required
             {...register("email")}
             placeholder="you@example.com"
@@ -118,7 +118,7 @@ export default function LoginForm({ onForgotPassword }: LoginFormProps) {
           <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type={showPassword ? "text" : "password"}
-            disabled={loginMutation.isLoading}
+            disabled={loginMutation.isPending}
             required
             {...register("password")}
             placeholder="••••••••"
@@ -163,8 +163,8 @@ export default function LoginForm({ onForgotPassword }: LoginFormProps) {
         </p>
       )}
 
-      <Button disabled={loginMutation.isLoading} type="submit" className="w-full rounded-xl py-2.5">
-        {loginMutation.isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      <Button disabled={loginMutation.isPending} type="submit" className="w-full rounded-xl py-2.5">
+        {loginMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         Sign In
       </Button>
     </form>
