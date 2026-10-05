@@ -20,14 +20,9 @@ export default function PopupImports({ className }: PopupImportsProps) {
 
   return (
     <>
-      {/* One toast container (it used to be mounted twice, doubling every toast). */}
-      <Toaster
-        containerClassName={className}
-        toastOptions={{
-          className: "!rounded-xl !border !border-border !bg-card !text-card-foreground !shadow-lg",
-        }}
-      />
+      <Toaster containerClassName={className} />
       <ConnectDialog className={className} />
+      <Toaster containerClassName={className} />
       {isOpen ? <w3m-modal /> : <></>}
     </>
   );

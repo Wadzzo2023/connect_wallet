@@ -60,7 +60,7 @@ export default function ForgotPasswordForm() {
         resetMutation.mutate({ email: data.email })
     }
 
-    const isDisabled = resetMutation.isPending || cooldownRemaining > 0
+    const isDisabled = resetMutation.isLoading || cooldownRemaining > 0
 
     return (
         <form className="flex w-full flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
@@ -75,7 +75,7 @@ export default function ForgotPasswordForm() {
             <div className="space-y-1">
                 <Input
                     type="email"
-                    disabled={resetMutation.isPending}
+                    disabled={resetMutation.isLoading}
                     required
                     {...register("email")}
                     placeholder="Enter your email"
@@ -86,13 +86,13 @@ export default function ForgotPasswordForm() {
 
             {emailSent && (
                 <div className="flex items-center gap-2 rounded-md bg-green-50 dark:bg-green-950 p-3 text-sm text-green-700 dark:text-green-300">
-                    <CheckCircle className="h-4 w-4 shrink-0" />
+                    <CheckCircle className="h-4 w-4 flex-shrink-0" />
                     <span>Check your email for the password reset link.</span>
                 </div>
             )}
 
             <Button disabled={isDisabled} type="submit" className="w-full">
-                {resetMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {resetMutation.isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {cooldownRemaining > 0 ? `Wait ${cooldownRemaining}s to resend` : "Send Reset Link"}
             </Button>
 

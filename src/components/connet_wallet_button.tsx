@@ -15,7 +15,7 @@ export default function ConnectWalletButton({ text }: { text?: string }) {
       <Button
         size='lg'
 
-        onClick={() => setDialog.setIsOpen(true)} className=" p-2 shadow-xs  text-white shadow-black bg-[#39BD2B] hover:bg-[#31a128]  flex items-center gap-2">
+        onClick={() => setDialog.setIsOpen(true)} className=" p-2 shadow-sm  text-white shadow-black bg-[#39BD2B] hover:bg-[#31a128]  flex items-center gap-2">
         <div className="flex items-center gap-2 ">
 
           <Image
@@ -54,7 +54,7 @@ function LogOutButon() {
     });
   }
   return (
-    <Button className="flex flex-col p-3 shadow-xs shadow-black" onClick={disconnectWallet}>
+    <Button className="flex flex-col p-3 shadow-sm shadow-black" onClick={disconnectWallet}>
       <span> <LogOut /></span>
       <span className="text-xs">Logout</span>
     </Button>

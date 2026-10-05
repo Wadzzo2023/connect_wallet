@@ -3,6 +3,7 @@ import { toast } from "react-hot-toast";
 import { DocumentDuplicateIcon, SignalSlashIcon } from "@heroicons/react/24/solid";
 import { ArrowLeft, ArrowUpCircle, CheckCircle2, LogOut, QrCodeIcon, RefreshCcw, Wallet } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
+import CopyToClipboard from "react-copy-to-clipboard";
 import clsx from "clsx";
 
 import { WalletType } from "../lib/enums";
@@ -24,6 +25,7 @@ import useFacebookiOSUserAgent from "./hook";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../shadcn/ui/tabs";
 import { Button } from "../shadcn/ui/button";
 import Image from "next/image";
+import { useRouter } from "next/router";
 import { Dialog, DialogContent, DialogTitle } from "../shadcn/ui/dialog";
 import { AR_APP_FRAME_SELECTOR } from "../lib/host-frame";
 import SignUpForm from "./sign_up";
@@ -77,7 +79,7 @@ function WalletButton({
             : "border-border bg-card text-card-foreground",
         )}
       >
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center">
+        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center">
           {imageUrl ? (
             <Image src={imageUrl} alt={label} width={28} height={28} className="rounded-full object-contain" />
           ) : (
@@ -85,7 +87,7 @@ function WalletButton({
           )}
         </span>
         <span className="flex-1 text-left">{label}</span>
-        {selected && <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />}
+        {selected && <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-primary" />}
       </button>
     </div>
   );
@@ -97,6 +99,7 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
   const [activeTab, setActiveTab] = useState<"action" | "stellar">("action");
   const [isAccountActivate, setAccountActivate] = useState(false);
   const [isAccountActivateLoading, setAccountActivateLoading] = useState(false);
+  const router = useRouter();
   const dialogModalState = useDialogStore();
   const [selectedWallet, setSelectedWallet] = useState(WalletType.none);
   const isIosFBuser = useFacebookiOSUserAgent();
@@ -128,12 +131,10 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
     }
   }, [checkAccountActivity, session.data?.user]);
 
-  // Plain browser navigation, not next/router or next/navigation: this
-  // package is shared by Pages-Router and App-Router apps.
   const disconnectWallet = useCallback(async () => {
     await signOut({ redirect: false });
-    window.location.reload();
-  }, []);
+    router.reload();
+  }, [router]);
 
   function toolTipsAddr(walletType: WalletType) {
     const user = session.data?.user;
@@ -178,17 +179,17 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
     const walletLabel = getWalletLabel(user.walletType ?? "");
     return (
       <div className="flex items-center gap-2 rounded-xl border bg-muted/40 px-3 py-2">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
+        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
           {initials}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1">
             <p className="truncate text-xs font-semibold text-foreground sm:text-sm">{name}</p>
-            <CheckCircle2 className="h-3 w-3 shrink-0 text-primary sm:h-3.5 sm:w-3.5" />
+            <CheckCircle2 className="h-3 w-3 flex-shrink-0 text-primary sm:h-3.5 sm:w-3.5" />
           </div>
           <p className="truncate text-[10px] text-muted-foreground sm:text-xs">{walletLabel}</p>
         </div>
-        <div className="flex shrink-0 items-center divide-x divide-border overflow-hidden rounded-lg border">
+        <div className="flex flex-shrink-0 items-center divide-x divide-border overflow-hidden rounded-lg border">
           <button
             onClick={() => {
               void toast.promise(navigator.clipboard.writeText(user.id), {
@@ -199,14 +200,14 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
             }}
             className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:gap-1.5 sm:px-2.5"
           >
-            <DocumentDuplicateIcon className="h-3.5 w-3.5 shrink-0" />
+            <DocumentDuplicateIcon className="h-3.5 w-3.5 flex-shrink-0" />
             <span className="hidden sm:inline">Copy</span>
           </button>
           <button
             onClick={disconnectWallet}
             className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 sm:gap-1.5 sm:px-2.5"
           >
-            <LogOut className="h-3.5 w-3.5 shrink-0" />
+            <LogOut className="h-3.5 w-3.5 flex-shrink-0" />
             <span className="hidden sm:inline">Disconnect</span>
           </button>
         </div>
@@ -251,17 +252,15 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const id = session.data.user.id;
-                void navigator.clipboard.writeText(id).then(() => toast.success("Copied: " + addrShort(id)));
-              }}
+            <CopyToClipboard
+              text={session.data.user.id}
+              onCopy={() => toast.success("Copied: " + addrShort(session.data.user.id))}
             >
-              <DocumentDuplicateIcon className="mr-1.5 h-3.5 w-3.5" />
-              Copy address
-            </Button>
+              <Button variant="outline" size="sm">
+                <DocumentDuplicateIcon className="mr-1.5 h-3.5 w-3.5" />
+                Copy address
+              </Button>
+            </CopyToClipboard>
             <Button
               variant="outline"
               size="sm"
@@ -588,10 +587,10 @@ export default function ConnectDialog({ className }: ConnectDialogProps) {
 
             <div className="p-6 pt-3">
               <button
-                onClick={() => (window.location.href = "https://github.com/Lobstrco/lobstr-browser-extension/tree/main")}
+                onClick={() => router.push("https://github.com/Lobstrco/lobstr-browser-extension/tree/main")}
                 className="flex w-full items-center gap-3 rounded-xl border border-accent-foreground/20 bg-accent-foreground/10 px-3 py-2.5 text-left transition-colors hover:bg-accent-foreground/20"
               >
-                <Image src="/images/icons/labstr.png" alt="Lobstr" width={32} height={32} className="shrink-0 rounded-full" />
+                <Image src="/images/icons/labstr.png" alt="Lobstr" width={32} height={32} className="flex-shrink-0 rounded-full" />
                 <div>
                   <p className="text-[10px] uppercase tracking-widest text-accent-foreground/60">Works with</p>
                   <p className="text-sm font-semibold text-accent-foreground">Lobstr Mobile App</p>
@@ -664,7 +663,7 @@ function WCButton({
               : "border-border bg-card text-card-foreground hover:border-primary/50 hover:bg-muted",
         )}
       >
-        <span className={clsx("flex shrink-0 items-center justify-center", inGrid ? "h-7 w-7" : "")}>
+        <span className={clsx("flex flex-shrink-0 items-center justify-center", inGrid ? "h-7 w-7" : "")}>
           <Image src="/images/icons/labstr.png" alt="Lobstr" width={inGrid ? 28 : 20} height={inGrid ? 28 : 20} className="rounded-full object-contain" />
         </span>
         {text && (
@@ -672,7 +671,7 @@ function WCButton({
             {wcLoading && initializing ? "Initializing…" : text}
           </span>
         )}
-        {isSelected && <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />}
+        {isSelected && <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-primary" />}
       </button>
     </div>
   );
