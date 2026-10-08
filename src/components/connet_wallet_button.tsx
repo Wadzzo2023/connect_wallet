@@ -15,7 +15,7 @@ export default function ConnectWalletButton({ text }: { text?: string }) {
       <Button
         size='lg'
 
-        onClick={() => setDialog.setIsOpen(true)} className=" p-2 shadow-xs  text-white shadow-black bg-[#39BD2B] hover:bg-[#31a128]  flex items-center gap-2">
+        onClick={() => setDialog.setIsOpen(true)} className=" p-2 shadow-xs  shadow-black bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2">
         <div className="flex items-center gap-2 ">
 
           <Image
