@@ -53,8 +53,11 @@ export async function verifyXDRSignature({
 
     // Check each signature to see if it matches the provided public key
     for (const signature of transaction.signatures) {
-      console.log("Checking signature:", signature.signature().toString("hex"));
-      if (keypair.verify(txHash, signature.signature())) {
+      // `signature` is a method in older SDKs and a property in newer ones
+      const raw = signature.signature as unknown;
+      const bytes = (typeof raw === "function" ? (raw as () => Buffer).call(signature) : raw) as Buffer;
+      console.log("Checking signature:", bytes.toString("hex"));
+      if (keypair.verify(txHash, bytes)) {
         return true;
       }
     }

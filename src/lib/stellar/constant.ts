@@ -17,10 +17,11 @@ export const USER_ACCOUNT_URL_APPLE =
 export const USER_ACCOUNT_XDR_URL =
   ACTION_STELLAR_ACCOUNT_URL + "api/account_xdr";
 
+/** Never the native asset, so `issuer` is always set (newer SDKs type it `string | undefined`). */
 export const PLATFORM_ASSET = new Asset(
   env.NEXT_PUBLIC_ASSET_CODE,
   env.NEXT_PUBLIC_ASSET_ISSUER,
-);
+) as Asset & { issuer: string };
 
 export const TrxBaseFee = env.NEXT_PUBLIC_STAGE === "prod" ? "1000" : "100";
 export const TrxBaseFeeInPlatformAsset =

@@ -6,9 +6,6 @@ import {
   Networks,
   Horizon,
   // type Horizon.BaseResponse,
-  type Memo,
-  type MemoType,
-  type Operation,
 } from "@stellar/stellar-sdk";
 
 import { WalletType } from "../enums";
@@ -38,7 +35,7 @@ import toast from "react-hot-toast";
 import { formatErrorForLogging, parseStellarError, StellarTransactionError } from "../error-handler";
 
 export const recursiveTransactionSubmitter = async (
-  transaction: Transaction<Memo<MemoType>, Operation[]>,
+  transaction: Transaction,
 ): Promise<Horizon.HorizonApi.SubmitTransactionResponse> => {
   let result: Horizon.HorizonApi.SubmitTransactionResponse;
   try {
